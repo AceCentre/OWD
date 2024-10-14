@@ -6,28 +6,34 @@ import WebRTCService from '../services/WebRTCService';
 import BLEService from '../services/BLEService';
 
 const Home = () => {
-    const [text, setText] = useState('Waiting for messages...'); // Default text
-    const [settings, setSettings] = useState({ fontSize: '24px', color: '#000', speed: 50, lines: 3 });
+  const [text, setText] = useState('Waiting for messages...');
+  const [settings, setSettings] = useState({ fontSize: '24px', color: '#000', speed: 50, lines: 3 });
+  const [webrtcService, setWebrtcService] = useState(null);
+  const [bleService, setBleService] = useState(null);
 
-    useEffect(() => {
-        const webrtc = new WebRTCService(setText);
-        webrtc.createOffer();
+  // Use WebSocket URL from the environment variable
+  const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
 
-        if ('bluetooth' in navigator) {
-            const ble = new BLEService(setText);
-            ble.connect();
-        }
-    }, []);
+  useEffect(() => {
+    const webrtc = new WebRTCService(setText);
+    webrtc.createOffer();
+    webrtc.connect(websocketURL);
+    setWebrtcService(webrtc);
 
-    const websocketURL = `${window.location.origin.replace(/^http/, 'ws')}/api/signaling`;
+    if ('bluetooth' in navigator) {
+      const ble = new BLEService(setText);
+      ble.connect();
+      setBleService(ble);
+    }
+  }, [websocketURL]);
 
-    return (
-        <>
-            <DisplayText text={text} {...settings} />
-            <SettingsPanel onSettingsChange={setSettings} />
-            <QRCodeDisplay websocketURL={websocketURL} />
-        </>
-    );
+  return (
+    <>
+      <DisplayText text={text} {...settings} />
+      <SettingsPanel onSettingsChange={setSettings} />
+      <QRCodeDisplay websocketURL={websocketURL} />
+    </>
+  );
 };
 
 export default Home;
