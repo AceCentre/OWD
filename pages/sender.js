@@ -1,29 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
 import WebRTCService from '../services/WebRTCService';
 
 const SenderApp = () => {
-  const router = useRouter();
   const [webrtcService, setWebrtcService] = useState(null);
   const [message, setMessage] = useState('');
   const [sessionId, setSessionId] = useState('');
+  const [isConnected, setIsConnected] = useState(false); // State for connection status
   const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
 
-  // Automatically set sessionId from URL if available
   useEffect(() => {
-    if (router.query.sessionId) {
-      setSessionId(router.query.sessionId);
-    }
-  }, [router.query.sessionId]);
-
-  useEffect(() => {
-    if (sessionId) { // Connect only if session ID is provided
+    if (sessionId) { 
       const webrtc = new WebRTCService((receivedMessage) => {
         console.log('Received:', receivedMessage);
       });
-      webrtc.connect(websocketURL, sessionId); // Pass session ID to WebRTC service
+
+      // Add event listener to confirm connection
+      webrtc.onConnection(() => setIsConnected(true));
+      
+      webrtc.connect(websocketURL, sessionId);
       setWebrtcService(webrtc);
     }
+
+    return () => {
+      // Clean up by disconnecting when component unmounts
+      if (webrtcService) {
+        webrtcService.disconnect();
+        setIsConnected(false); // Reset connection status
+      }
+    };
   }, [websocketURL, sessionId]);
 
   const sendMessage = () => {
@@ -48,6 +52,13 @@ const SenderApp = () => {
         placeholder="Type a message"
       />
       <button onClick={sendMessage} disabled={!sessionId}>Send Message</button>
+
+      {/* Display connection status */}
+      {isConnected ? (
+        <p>Connected to display session {sessionId}</p>
+      ) : (
+        <p>Waiting to connect...</p>
+      )}
     </div>
   );
 };
