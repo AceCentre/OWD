@@ -11,7 +11,8 @@ const Sender = () => {
   // Set WebSocket URL only on the client side
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const currentDomain = window.location.origin.replace(/^http/, 'ws'); // Automatically uses ws/wss
+      // Runs only in the browser
+      const currentDomain = window.location.origin.replace(/^http/, 'ws');
       setWsUrl(`${currentDomain}/api/signaling`);
     }
   }, []);
