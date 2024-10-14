@@ -4,22 +4,19 @@ import SettingsPanel from '../components/SettingsPanel';
 import QRCodeDisplay from '../components/QRCodeDisplay';
 import WebRTCService from '../services/WebRTCService';
 import BLEService from '../services/BLEService';
+import { v4 as uuidv4 } from 'uuid';
 
 const Home = () => {
   const [text, setText] = useState('Waiting for messages...');
   const [settings, setSettings] = useState({ fontSize: '24px', color: '#000', speed: 50, lines: 3 });
   const [isConnected, setIsConnected] = useState(false);
-  const [sessionId, setSessionId] = useState(null);
+  const [sessionId, setSessionId] = useState(uuidv4());
 
   const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
 
   useEffect(() => {
-    // Generate or retrieve a sessionId if needed
-    const id = sessionId || generateSessionId(); // Replace generateSessionId with your session ID generation logic
-    setSessionId(id);
-
     const webrtc = new WebRTCService(setText);
-    webrtc.connect(websocketURL, id);
+    webrtc.connect(websocketURL, sessionId);
     webrtc.createOffer();
     setIsConnected(true);
 
@@ -30,7 +27,7 @@ const Home = () => {
 
     return () => {
       setIsConnected(false);
-      webrtc.disconnect(); // Ensure cleanup if needed
+      webrtc.disconnect(); // Cleanup if needed
     };
   }, [websocketURL, sessionId]);
 
