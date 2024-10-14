@@ -4,26 +4,14 @@ import WebRTCService from '../services/WebRTCService';
 
 const Sender = () => {
   const [message, setMessage] = useState('');
-  const [wsUrl, setWsUrl] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [webrtcService, setWebrtcService] = useState(null);
-  const [isClient, setIsClient] = useState(false);
+
+  // Use the WebSocket URL from the environment variable
+  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || '';
 
   useEffect(() => {
-    // Ensure this runs only on the client
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    if (isClient) {
-      const currentDomain = window.location.origin.replace(/^http/, 'ws');
-      setWsUrl(`${currentDomain}/api/signaling`);
-    }
-  }, [isClient]);
-
-  // Initialize WebRTC service once the WebSocket URL is set
-  useEffect(() => {
-    if (wsUrl && isClient) {
+    if (wsUrl) {
       const webrtc = new WebRTCService();
       webrtc.createOffer();
       webrtc.connect(wsUrl);
@@ -31,7 +19,7 @@ const Sender = () => {
 
       webrtc.onConnectionStatusChange((status) => setIsConnected(status));
     }
-  }, [wsUrl, isClient]);
+  }, [wsUrl]);
 
   const handleSend = () => {
     if (webrtcService && isConnected) {
@@ -52,7 +40,7 @@ const Sender = () => {
           <input
             type="text"
             value={wsUrl}
-            onChange={(e) => setWsUrl(e.target.value)}
+            readOnly
             style={{ width: '100%', padding: '10px', marginTop: '5px' }}
           />
         </label>
