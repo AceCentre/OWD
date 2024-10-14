@@ -44,6 +44,7 @@ const Home = () => {
           <p>Session ID: {sessionId}</p>
           <QRCodeDisplay websocketURL={websocketURL} />
           <p>Scan the QR code to connect from a sender device.</p>
+          <p>{websocketURL}</p>
         </>
       )}
 
