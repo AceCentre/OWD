@@ -8,10 +8,9 @@ const Sender = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [webrtcService, setWebrtcService] = useState(null);
 
-  // Set WebSocket URL only on the client side
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Runs only in the browser
+      // Set WebSocket URL only on the client side
       const currentDomain = window.location.origin.replace(/^http/, 'ws');
       setWsUrl(`${currentDomain}/api/signaling`);
     }
@@ -19,7 +18,7 @@ const Sender = () => {
 
   // Set up WebRTC connection on WebSocket URL change
   useEffect(() => {
-    if (wsUrl) {
+    if (wsUrl && typeof window !== 'undefined') {
       const webrtc = new WebRTCService();
       webrtc.createOffer();
       webrtc.connect(wsUrl);
