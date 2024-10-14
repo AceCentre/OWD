@@ -13,6 +13,7 @@
     "react": "latest",
     "react-dom": "latest",
     "qrcode.react": "latest",
+    "uuid": "latest",
     "ws": "^8.0.0",
     "react-type-animation": "latest"
   },
