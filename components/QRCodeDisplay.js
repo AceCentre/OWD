@@ -1,10 +1,13 @@
-import React from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 
-const QRCodeDisplay = ({ websocketURL }) => (
-    <div className="qr-code">
-        <QRCodeCanvas value={websocketURL} />
-    </div>
-);
+const QRCodeDisplay = ({ sessionId }) => {
+    const displayURL = `${process.env.NEXT_PUBLIC_BASE_URL}/connect/${sessionId}`;
+    
+    return (
+        <div className="qr-code">
+            <QRCodeCanvas value={displayURL} />
+        </div>
+    );
+};
 
 export default QRCodeDisplay;
