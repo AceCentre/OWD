@@ -1,14 +1,10 @@
+import React from 'react';
+import { QRCodeCanvas } from 'qrcode.react';
 
-        import React from 'react';
-        import QRCode from 'qrcode.react';
-        //import { QRCode } from 'qrcode.react';
-       // import { QRCodeCanvas } from 'qrcode.react';
+const QRCodeDisplay = ({ websocketURL }) => (
+    <div className="qr-code">
+        <QRCodeCanvas value={websocketURL} />
+    </div>
+);
 
-        const QRCodeDisplay = ({ websocketURL }) => (
-            <div className="qr-code">
-                <QRCode value={websocketURL} />
-            </div>
-        );
-
-        export default QRCodeDisplay;
-    
+export default QRCodeDisplay;
