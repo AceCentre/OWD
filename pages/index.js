@@ -12,9 +12,8 @@ const Home = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [sessionId, setSessionId] = useState(uuidv4());
   
-  // Define the WebSocket URL and the QR code URL
+  // WebSocket URL for internal use, based only on session ID
   const websocketURL = `${process.env.NEXT_PUBLIC_WS_URL}/${sessionId}`;
-  const qrCodeURL = `${process.env.NEXT_PUBLIC_HTTPS_URL}/sender?sessionId=${sessionId}`;
 
   useEffect(() => {
     const webrtc = new WebRTCService(setText);
@@ -45,7 +44,7 @@ const Home = () => {
       ) : (
         <>
           <p>Session ID: {sessionId}</p>
-          <QRCodeDisplay websocketURL={qrCodeURL} />
+          <QRCodeDisplay sessionId={sessionId} /> {/* Pass only sessionId */}
           <p>Scan the QR code to connect from a sender device.</p>
         </>
       )}
