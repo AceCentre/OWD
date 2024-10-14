@@ -8,10 +8,12 @@ const Sender = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [webrtcService, setWebrtcService] = useState(null);
 
-  // Automatically set the WebSocket URL based on the current domain
+  // Set WebSocket URL only on the client side
   useEffect(() => {
-    const currentDomain = window.location.origin.replace(/^http/, 'ws'); // Automatically uses ws/wss
-    setWsUrl(`${currentDomain}/api/signaling`);
+    if (typeof window !== 'undefined') {
+      const currentDomain = window.location.origin.replace(/^http/, 'ws'); // Automatically uses ws/wss
+      setWsUrl(`${currentDomain}/api/signaling`);
+    }
   }, []);
 
   // Set up WebRTC connection on WebSocket URL change
