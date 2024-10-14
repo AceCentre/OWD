@@ -23,7 +23,7 @@ This project is a cross-platform AAC (Augmentative and Alternative Communication
    ```bash
    git clone https://github.com/acecentre/owd.git
    cd owd
-```
+   ```
 
 2.	Install Dependencies:
 
@@ -45,11 +45,9 @@ Open http://localhost:3000 to view the app.
 
     npm start
 
-
-
 ##Project Structure
 
-```text
+```
    owd/
    ├── components/
    │   ├── DisplayText.js       # Text display component with custom styles
