@@ -3,6 +3,14 @@ Open Wireless display using webrtc
 
 This project is a cross-platform AAC (Augmentative and Alternative Communication) display app using Next.js. It includes WebRTC for real-time communication, BLE (Bluetooth Low Energy) support, and a QR code feature for device pairing.
 
+
+## What shoukd tbis do?
+
+- provide a demo sending page. pair with a display webrtc backend isubg the signalling webrtc backend. pair via ble or wifi using qr code. simole text box. type in it and presss send.
+- a webrtc signalling server.
+- a disolay SPA which privides a qr code and a way of pairing with the backend using webrtc. then when paired abd connected - deal with network changes - and disolay incoming text ib a large full screen beatiiful animated way. font size, colour, font, animation details etc all configurable.
+- provide a way of sending a "im writing" from sender app (as you start entering texr but before you press send) and display on display app. eg "...." (animated)
+ 
 ## Features
 
 - **Cross-Platform**: Works across devices including desktops, tablets, and mobile devices.
