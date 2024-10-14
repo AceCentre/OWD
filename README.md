@@ -18,30 +18,30 @@ This project is a cross-platform AAC (Augmentative and Alternative Communication
 
 ## Getting Started
 
-###1. **Clone the Repository**:
+1. **Clone the Repository**:
 
    ```bash
    git clone https://github.com/acecentre/owd.git
    cd owd
 ```
 
-###2.	Install Dependencies:
+2.	Install Dependencies:
 
     npm install
 
 
-###3.	Run the Development Server:
+3.	Run the Development Server:
 
     npm run dev
 
 Open http://localhost:3000 to view the app.
 
-###4.	Build for Production:
+4.	Build for Production:
 
     npm run build
 
 
-###5.	Start Production Server:
+5.	Start Production Server:
 
     npm start
 
@@ -49,25 +49,26 @@ Open http://localhost:3000 to view the app.
 
 ##Project Structure
 
-owd/
-├── components/
-│   ├── DisplayText.js       # Text display component with custom styles
-│   ├── SettingsPanel.js     # Settings panel for configuring display options
-│   └── QRCodeDisplay.js     # QR code generator for pairing
-├── pages/
-│   ├── index.js             # Main page displaying the AAC text
-│   ├── sender.js            # Page for sending text messages
-│   └── api/
-│       └── signaling.js     # WebSocket signaling server for WebRTC
-├── public/
-│   ├── manifest.json        # Web app manifest for PWA setup
-│   └── service-worker.js    # Service worker for offline support
-├── services/
-│   ├── WebRTCService.js     # WebRTC connection management
-│   ├── SocketService.js     # WebSocket management
-│   └── BLEService.js        # BLE connection management
-└── package.json             # Project metadata and dependencies
-
+```text
+   owd/
+   ├── components/
+   │   ├── DisplayText.js       # Text display component with custom styles
+   │   ├── SettingsPanel.js     # Settings panel for configuring display options
+   │   └── QRCodeDisplay.js     # QR code generator for pairing
+   ├── pages/
+   │   ├── index.js             # Main page displaying the AAC text
+   │   ├── sender.js            # Page for sending text messages
+   │   └── api/
+   │       └── signaling.js     # WebSocket signaling server for WebRTC
+   ├── public/
+   │   ├── manifest.json        # Web app manifest for PWA setup
+   │   └── service-worker.js    # Service worker for offline support
+   ├── services/
+   │   ├── WebRTCService.js     # WebRTC connection management
+   │   ├── SocketService.js     # WebSocket management
+   │   └── BLEService.js        # BLE connection management
+   └── package.json             # Project metadata and dependencies
+```
 
 ##Deployment
 
