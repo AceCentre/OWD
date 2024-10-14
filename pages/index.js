@@ -12,15 +12,13 @@ const Home = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [sessionId, setSessionId] = useState(uuidv4());
   
-  // Define the WebSocket URL
-  const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
-  
-  // Define the QR code URL with only the HTTPS link and sessionId
-  const qrCodeURL = `${window.location.origin}/sender?sessionId=${sessionId}`;
+  // Define the WebSocket URL and the QR code URL
+  const websocketURL = `${process.env.NEXT_PUBLIC_WS_URL}/${sessionId}`;
+  const qrCodeURL = `${process.env.NEXT_PUBLIC_HTTPS_URL}/sender?sessionId=${sessionId}`;
 
   useEffect(() => {
     const webrtc = new WebRTCService(setText);
-    webrtc.connect(`${websocketURL}/${sessionId}`);
+    webrtc.connect(websocketURL);
     webrtc.createOffer();
     setIsConnected(true);
 
@@ -33,7 +31,7 @@ const Home = () => {
       setIsConnected(false);
       webrtc.disconnect();
     };
-  }, [websocketURL, sessionId]);
+  }, [websocketURL]);
 
   return (
     <div id="display-container">
