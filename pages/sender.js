@@ -1,65 +1,37 @@
-// pages/sender.js
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import WebRTCService from '../services/WebRTCService';
 
-const Sender = () => {
-  const [message, setMessage] = useState('');
-  const [isConnected, setIsConnected] = useState(false);
+const SenderApp = () => {
   const [webrtcService, setWebrtcService] = useState(null);
-
-  // Use the WebSocket URL from the environment variable
-  const wsUrl = process.env.NEXT_PUBLIC_WS_URL || '';
+  const [message, setMessage] = useState('');
+  const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
 
   useEffect(() => {
-    if (wsUrl) {
-      const webrtc = new WebRTCService();
-      webrtc.createOffer();
-      webrtc.connect(wsUrl);
-      setWebrtcService(webrtc);
+    const webrtc = new WebRTCService((receivedMessage) => {
+      console.log('Received:', receivedMessage);
+    });
+    webrtc.connect(websocketURL);
+    setWebrtcService(webrtc);
+  }, [websocketURL]);
 
-      webrtc.onConnectionStatusChange((status) => setIsConnected(status));
-    }
-  }, [wsUrl]);
-
-  const handleSend = () => {
-    if (webrtcService && isConnected) {
+  const sendMessage = () => {
+    if (webrtcService) {
       webrtcService.sendMessage(message);
-      setMessage('');
-    } else {
-      alert('Connect to the WebSocket URL first.');
     }
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Sender Demo</h2>
-
-      <div style={{ marginBottom: '20px' }}>
-        <label>
-          WebSocket URL:
-          <input
-            type="text"
-            value={wsUrl}
-            readOnly
-            style={{ width: '100%', padding: '10px', marginTop: '5px' }}
-          />
-        </label>
-      </div>
-
+    <div>
+      <h1>Sender App</h1>
       <input
         type="text"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        placeholder="Type your message here"
-        style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+        placeholder="Type a message"
       />
-      <button onClick={handleSend} style={{ padding: '10px 20px', marginTop: '10px' }}>
-        Send
-      </button>
-
-      <p>Status: {isConnected ? 'Connected' : 'Not Connected'}</p>
+      <button onClick={sendMessage}>Send Message</button>
     </div>
   );
 };
 
-export default Sender;
+export default SenderApp;
