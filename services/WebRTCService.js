@@ -4,6 +4,7 @@ class WebRTCService {
         this.peerConnection = new RTCPeerConnection();
         this.channel = this.peerConnection.createDataChannel('messaging');
         this.channel.onmessage = (event) => this.onMessageReceived(event.data);
+        this.connectionHandler = null; // Handler for connection confirmation
     }
 
     async createOffer(sessionId) {
@@ -24,20 +25,37 @@ class WebRTCService {
             const message = JSON.parse(event.data);
             if (message.type === 'answer') {
                 this.peerConnection.setRemoteDescription(new RTCSessionDescription(message.data));
+                if (this.connectionHandler) this.connectionHandler(); // Trigger connection confirmation
             }
         };
         
         this.socket.onopen = () => {
             console.log('WebSocket connection established');
-            // Create offer after establishing the WebSocket connection
-            this.createOffer(sessionId);
+            this.createOffer(sessionId); // Create offer after WebSocket is open
         };
+    }
+
+    onConnection(callback) {
+        this.connectionHandler = callback; // Set the connection confirmation callback
     }
 
     async sendMessage(message) {
         if (this.channel.readyState === 'open') {
             this.channel.send(message);
         }
+    }
+
+    disconnect() {
+        if (this.channel) {
+            this.channel.close();
+        }
+        if (this.peerConnection) {
+            this.peerConnection.close();
+        }
+        if (this.socket) {
+            this.socket.close();
+        }
+        console.log("WebRTC and WebSocket connections closed");
     }
 }
 
