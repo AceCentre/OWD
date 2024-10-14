@@ -45,7 +45,7 @@ Open http://localhost:3000 to view the app.
 
     npm start
 
-##Project Structure
+## Project Structure
 
 ```
    owd/
@@ -68,7 +68,7 @@ Open http://localhost:3000 to view the app.
    └── package.json             # Project metadata and dependencies
 ```
 
-##Deployment
+## Deployment
 
 To deploy this app to a platform like Heroku or DigitalOcean, ensure you have:
 
@@ -80,11 +80,11 @@ To deploy this app to a platform like Heroku or DigitalOcean, ensure you have:
 
 
 
-##License
+## License
 
 This project is licensed under the MIT License.
 
-##Author
+## Author
 
 Created by Will Wade.
 
