@@ -13,7 +13,6 @@
     "react": "latest",
     "react-dom": "latest",
     "qrcode.react": "latest",
-    "react-qr-reader": "latest",
     "ws": "^8.0.0",
     "react-type-animation": "latest"
   },
