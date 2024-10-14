@@ -4,7 +4,6 @@ import SettingsPanel from '../components/SettingsPanel';
 import QRCodeDisplay from '../components/QRCodeDisplay';
 import WebRTCService from '../services/WebRTCService';
 import BLEService from '../services/BLEService';
-import '../styles/Home.css';
 
 const Home = () => {
   const [text, setText] = useState('');
