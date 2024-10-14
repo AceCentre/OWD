@@ -11,12 +11,11 @@ const Home = () => {
   const [settings, setSettings] = useState({ fontSize: '24px', color: '#000', speed: 50, lines: 3 });
   const [isConnected, setIsConnected] = useState(false);
   const [sessionId, setSessionId] = useState(uuidv4());
-
-  const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
+  const websocketURL = `${process.env.NEXT_PUBLIC_WS_URL}/${sessionId}`;
 
   useEffect(() => {
     const webrtc = new WebRTCService(setText);
-    webrtc.connect(websocketURL, sessionId);
+    webrtc.connect(websocketURL);
     webrtc.createOffer();
     setIsConnected(true);
 
@@ -27,9 +26,9 @@ const Home = () => {
 
     return () => {
       setIsConnected(false);
-      webrtc.disconnect(); // Cleanup if needed
+      webrtc.disconnect();
     };
-  }, [websocketURL, sessionId]);
+  }, [websocketURL]);
 
   return (
     <div id="display-container">
@@ -43,7 +42,7 @@ const Home = () => {
       ) : (
         <>
           <p>Session ID: {sessionId}</p>
-          <QRCodeDisplay websocketURL={`${websocketURL}/${sessionId}`} />
+          <QRCodeDisplay websocketURL={websocketURL} />
           <p>Scan the QR code to connect from a sender device.</p>
         </>
       )}
