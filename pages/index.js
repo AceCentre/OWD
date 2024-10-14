@@ -19,11 +19,13 @@ const Home = () => {
         }
     }, []);
 
+    const websocketURL = `${window.location.origin.replace(/^http/, 'ws')}/api/signaling`;
+
     return (
         <>
-            {text && <DisplayText text={text} {...settings} />} {/* Conditional render */}
+            <DisplayText text={text} {...settings} />
             <SettingsPanel onSettingsChange={setSettings} />
-            <QRCodeDisplay websocketURL="wss://yourdomain.com/api/signaling" />
+            <QRCodeDisplay websocketURL={websocketURL} />
         </>
     );
 };
