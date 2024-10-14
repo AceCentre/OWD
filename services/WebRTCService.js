@@ -6,67 +6,77 @@ class WebRTCService {
         this.peerConnection = new RTCPeerConnection();
         this.channel = this.peerConnection.createDataChannel('messaging');
         this.channel.onmessage = (event) => this.onMessageReceived(event.data);
-        this.connectionHandler = null; // Handler for connection confirmation
+        this.connectionHandler = null;
         this.heartbeatInterval = null;
         this.reconnectInterval = 1000; // Start with 1 second
         this.isConnected = false;
         this.sessionId = uuidv4(); // Unique session ID
+
+        console.log(`WebRTCService initialized with session ID: ${this.sessionId}`);
     }
 
     async createOffer() {
+        console.log('Creating WebRTC offer...');
         const offer = await this.peerConnection.createOffer();
         await this.peerConnection.setLocalDescription(offer);
-        // Send the offer along with the session ID to the signaling server
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            console.log('Sending WebRTC offer via WebSocket');
             this.socket.send(JSON.stringify({ type: 'offer', sessionId: this.sessionId, data: offer }));
+        } else {
+            console.warn('WebSocket is not open. Offer not sent.');
         }
     }
 
     connect(websocketURL) {
-        // Include session ID in the WebSocket URL
         const urlWithSession = `${websocketURL}?sessionId=${this.sessionId}`;
+        console.log(`Connecting to WebSocket at: ${urlWithSession}`);
         this.socket = new WebSocket(urlWithSession);
 
         this.socket.onopen = () => {
             console.log('WebSocket connection established');
             this.reconnectInterval = 1000; // Reset reconnect interval
-            this.createOffer(); // Create offer after WebSocket is open
+            this.createOffer();
             this.startHeartbeat();
         };
 
         this.socket.onmessage = (event) => {
             const message = JSON.parse(event.data);
             if (message.type === 'answer') {
+                console.log('Received WebRTC answer');
                 this.peerConnection.setRemoteDescription(new RTCSessionDescription(message.data));
                 this.isConnected = true;
                 if (this.connectionHandler) this.connectionHandler();
             } else if (message === 'pong') {
                 console.log('Heartbeat pong received');
+            } else {
+                console.log('Unknown message received via WebSocket:', message);
             }
         };
 
         this.socket.onclose = () => {
-            console.log('WebSocket connection closed, attempting to reconnect...');
+            console.warn('WebSocket connection closed. Attempting to reconnect...');
             this.stopHeartbeat();
             this.isConnected = false;
             setTimeout(() => this.connect(websocketURL), this.reconnectInterval);
-            this.reconnectInterval = Math.min(this.reconnectInterval * 2, 30000); // Exponential backoff, max 30 seconds
+            this.reconnectInterval = Math.min(this.reconnectInterval * 2, 30000); // Exponential backoff
         };
 
         this.socket.onerror = (error) => {
-            console.error('WebSocket error:', error);
+            console.error('WebSocket encountered an error:', error);
         };
     }
 
     onConnection(callback) {
-        this.connectionHandler = callback; // Set the connection confirmation callback
+        this.connectionHandler = callback;
+        console.log('Connection handler set for WebRTCService');
     }
 
     async sendMessage(message) {
         if (this.channel.readyState === 'open') {
+            console.log('Sending message via data channel:', message);
             this.channel.send(message);
         } else {
-            console.warn('Data channel is not open');
+            console.warn('Data channel is not open. Message not sent.');
         }
     }
 
@@ -79,15 +89,18 @@ class WebRTCService {
     }
 
     startHeartbeat() {
+        console.log('Starting heartbeat...');
         this.heartbeatInterval = setInterval(() => {
             if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                console.log('Sending heartbeat ping');
                 this.socket.send('ping');
             }
-        }, 5000); // Send a ping every 5 seconds
+        }, 5000);
     }
 
     stopHeartbeat() {
         clearInterval(this.heartbeatInterval);
+        console.log('Heartbeat stopped');
     }
 }
 
