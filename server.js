@@ -1,6 +1,7 @@
 const express = require('express');
 const next = require('next');
 const WebSocket = require('ws');
+const http = require('http'); // Import http explicitly
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -9,7 +10,8 @@ const handle = app.getRequestHandler();
 const port = process.env.PORT || 3000;
 
 app.prepare().then(() => {
-  const server = express();
+  const expressApp = express();
+  const server = http.createServer(expressApp); // Create http server and pass express app
 
   // WebSocket server setup
   const wss = new WebSocket.Server({ noServer: true });
@@ -37,7 +39,7 @@ app.prepare().then(() => {
   });
 
   // Express middleware for API routes and pages
-  server.all('*', (req, res) => {
+  expressApp.all('*', (req, res) => {
     return handle(req, res);
   });
 
