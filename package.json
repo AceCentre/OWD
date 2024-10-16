@@ -4,9 +4,9 @@
   "description": "A Next.js app for AAC display with WebRTC and BLE support",
   "main": "server.js",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
+  "dev": "node server.js",
+  "build": "next build",
+  "start": "NODE_ENV=production node server.js"
   },
   "dependencies": {
     "next": "latest",
