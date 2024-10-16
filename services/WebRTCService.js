@@ -8,13 +8,24 @@ class WebRTCService {
         this.channel.onmessage = (event) => this.onMessageReceived(event.data);
         this.connectionHandler = null;
         this.heartbeatInterval = null;
-        this.reconnectInterval = 1000; // Start with 1 second
+        this.reconnectInterval = 1000;
         this.isConnected = false;
-        this.sessionId = uuidv4(); // Unique session ID
+        this.sessionId = uuidv4();
+
+        this.peerConnection.oniceconnectionstatechange = () => {
+            console.log(`ICE connection state changed to: ${this.peerConnection.iceConnectionState}`);
+            if (this.peerConnection.iceConnectionState === 'disconnected' || 
+                this.peerConnection.iceConnectionState === 'failed') {
+                this.isConnected = false;
+                console.warn('Peer connection failed or disconnected');
+            }
+        };
 
         console.log(`WebRTCService initialized with session ID: ${this.sessionId}`);
     }
 
+
+export default WebRTCService;
     async createOffer() {
         console.log('Creating WebRTC offer...');
         const offer = await this.peerConnection.createOffer();
