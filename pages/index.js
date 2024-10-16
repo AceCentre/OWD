@@ -10,25 +10,40 @@ const Home = () => {
   const [text, setText] = useState('Waiting for messages...');
   const [settings, setSettings] = useState({ fontSize: '24px', color: '#000', speed: 50, lines: 3 });
   const [isConnected, setIsConnected] = useState(false);
-  const [sessionId, setSessionId] = useState(uuidv4());
+  const [sessionId, setSessionId] = useState('');
   
-  // WebSocket URL for internal use, based only on session ID
   const websocketURL = `${process.env.NEXT_PUBLIC_WS_URL}/${sessionId}`;
 
   useEffect(() => {
+    // Retrieve or generate a session ID
+    const savedSessionId = localStorage.getItem('sessionId') || uuidv4();
+    setSessionId(savedSessionId);
+    localStorage.setItem('sessionId', savedSessionId);
+  }, []);
+
+  useEffect(() => {
     const webrtc = new WebRTCService(setText);
+
+    // Set connection state upon successful WebRTC connection
+    webrtc.onConnection(() => {
+      setIsConnected(true);
+      console.log('Display connected to WebRTC session');
+    });
+
     webrtc.connect(websocketURL);
     webrtc.createOffer();
-    setIsConnected(true);
 
+    // Initialize Bluetooth if supported
+    let ble;
     if ('bluetooth' in navigator) {
-      const ble = new BLEService(setText);
+      ble = new BLEService(setText);
       ble.connect();
     }
 
     return () => {
       setIsConnected(false);
       webrtc.disconnect();
+      if (ble) ble.disconnect(); // Clean up BLE connection
     };
   }, [websocketURL]);
 
