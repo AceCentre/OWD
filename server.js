@@ -1,7 +1,8 @@
 const express = require('express');
 const next = require('next');
 const WebSocket = require('ws');
-const http = require('http'); // Import http explicitly
+const WebRTCService = require('./service/webrtc'); // Your WebRTC service
+const http = require('http'); 
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -11,23 +12,22 @@ const port = process.env.PORT || 3000;
 
 app.prepare().then(() => {
   const expressApp = express();
-  const server = http.createServer(expressApp); // Create http server and pass express app
+  const server = http.createServer(expressApp);
 
-  // WebSocket server setup
+  // Initialize WebSocket server and WebRTC service
   const wss = new WebSocket.Server({ noServer: true });
+  const webrtcService = new WebRTCService((message) => {
+    console.log("Message received in WebRTC service:", message);
+  });
+  
+  // Directly connect WebRTC service to WebSocket URL
+  webrtcService.connect("wss://sea-lion-app-kfgwa.ondigitalocean.app/api/signaling");
 
-  wss.on('connection', (ws) => {
-    console.log('WebSocket client connected');
-    ws.on('message', (message) => {
-      console.log(`Received message: ${message}`);
-      ws.send('Message received');
-    });
-    ws.on('close', () => {
-      console.log('WebSocket client disconnected');
-    });
+  wss.on('connection', (ws, req) => {
+    console.log("New WebSocket connection in WebRTC service");
+    webrtcService.handleConnection(ws); // Pass WebSocket connections to WebRTC
   });
 
-  // Handle WebSocket upgrade only for /api/signaling
   server.on('upgrade', (request, socket, head) => {
     if (request.url === '/api/signaling') {
       wss.handleUpgrade(request, socket, head, (ws) => {
@@ -38,10 +38,8 @@ app.prepare().then(() => {
     }
   });
 
-  // Express middleware for API routes and pages
-  expressApp.all('*', (req, res) => {
-    return handle(req, res);
-  });
+  // Route HTTP requests to Next.js
+  expressApp.all('*', (req, res) => handle(req, res));
 
   // Start server
   server.listen(port, (err) => {
