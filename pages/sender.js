@@ -1,70 +1,61 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import DisplayText from '../components/DisplayText';
+import SettingsPanel from '../components/SettingsPanel';
+import QRCodeDisplay from '../components/QRCodeDisplay';
 import WebRTCService from '../services/WebRTCService';
+import BLEService from '../services/BLEService';
+import { v4 as uuidv4 } from 'uuid';
 
-const SenderApp = () => {
-  const [webrtcService, setWebrtcService] = useState(null);
-  const [message, setMessage] = useState('');
-  const [sessionId, setSessionId] = useState('');
+const Home = () => {
+  const [text, setText] = useState('Waiting for messages...');
+  const [settings, setSettings] = useState({ fontSize: '24px', color: '#000', speed: 50, lines: 3 });
   const [isConnected, setIsConnected] = useState(false);
-  const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
+  const [sessionId, setSessionId] = useState(uuidv4());
+  
+  // WebSocket URL for internal use, based only on session ID
+  const websocketURL = `${process.env.NEXT_PUBLIC_WS_URL}/${sessionId}`;
 
-  const handleConnect = () => {
-    if (sessionId) {
-      const webrtc = new WebRTCService((receivedMessage) => {
-        console.log('Received:', receivedMessage);
-      });
-
-      webrtc.onConnection(() => setIsConnected(true)); // Confirm connection
-      webrtc.connect(websocketURL, sessionId);
-      setWebrtcService(webrtc);
-    } else {
-      console.warn("Session ID is required to connect");
-    }
-  };
-
-  const sendMessage = () => {
-    if (webrtcService && isConnected) {
-      webrtcService.sendMessage(message);
-    } else {
-      console.warn("Not connected to a display session");
-    }
-  };
-
-  // Clean up the connection on unmount
   useEffect(() => {
+    const webrtc = new WebRTCService(setText);
+    webrtc.connect(websocketURL);
+    webrtc.createOffer();
+    setIsConnected(true);
+
+    if ('bluetooth' in navigator) {
+      const ble = new BLEService(setText);
+      ble.connect();
+    }
+
     return () => {
-      if (webrtcService) {
-        webrtcService.disconnect();
-        setIsConnected(false);
-      }
+      setIsConnected(false);
+      webrtc.disconnect();
     };
-  }, [webrtcService]);
+  }, [websocketURL]);
 
   return (
-    <div>
-      <h1>Sender App</h1>
-      <input
-        type="text"
-        value={sessionId}
-        onChange={(e) => setSessionId(e.target.value)}
-        placeholder="Enter Session ID"
-      />
-      <button onClick={handleConnect} disabled={isConnected || !sessionId}>
-        {isConnected ? "Connected" : "Connect"}
-      </button>
-      <input
-        type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        placeholder="Type a message"
-        disabled={!isConnected}
-      />
-      <button onClick={sendMessage} disabled={!isConnected || !message}>
-        Send Message
-      </button>
-      <p>{isConnected ? `Connected to display session ${sessionId}` : "Waiting to connect..."}</p>
+    <div id="display-container">
+      <h1>Open Wireless Display</h1>
+
+      {isConnected ? (
+        <>
+          <p>Connected to session: {sessionId}</p>
+          <DisplayText text={text} {...settings} />
+        </>
+      ) : (
+        <>
+          <p>Session ID: {sessionId}</p>
+          <QRCodeDisplay sessionId={sessionId} /> {/* Pass only sessionId */}
+          <p>Scan the QR code to connect from a sender device.</p>
+        </>
+      )}
+
+      <div className="settings-button" onClick={() => setIsConnected(!isConnected)}>
+        ⚙️ Settings
+      </div>
+
+      {isConnected && <SettingsPanel onSettingsChange={setSettings} />}
     </div>
   );
 };
 
-export default SenderApp;
+export default Home;
