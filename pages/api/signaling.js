@@ -2,7 +2,7 @@ import { Server } from 'ws';
 import WebRTCService from '../../services/WebRTCService';
 
 let wsServer;
-const sessions = {}; // Store clients per session
+const sessions = {};
 
 export default function handler(req, res) {
     if (!wsServer) {
@@ -16,12 +16,30 @@ export default function handler(req, res) {
             if (!sessions[sessionId]) sessions[sessionId] = new Set();
             sessions[sessionId].add(socket);
 
+            // Respond to ping messages for heartbeat
             socket.on('message', (message) => {
-                sessions[sessionId].forEach((client) => {
-                    if (client !== socket && client.readyState === client.OPEN) {
-                        client.send(message);
+                if (message === 'ping') {
+                    socket.send('pong');
+                    return;
+                }
+
+                try {
+                    // Parse and handle message if it's not a heartbeat
+                    const parsedMessage = JSON.parse(message);
+                    if (!parsedMessage.type) {
+                        console.error('Message missing type field');
+                        return;
                     }
-                });
+
+                    // Forward to other clients in session
+                    sessions[sessionId].forEach((client) => {
+                        if (client !== socket && client.readyState === client.OPEN) {
+                            client.send(message);
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error parsing or handling message:', error.message);
+                }
             });
 
             socket.on('close', () => {
