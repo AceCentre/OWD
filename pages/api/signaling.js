@@ -1,5 +1,5 @@
 import { Server } from 'ws';
-import WebRTCService from '../../services/webrtcservice';
+import WebRTCService from '../../services/WebRTCService';
 
 let wsServer;
 const sessions = {}; // Store clients per session
