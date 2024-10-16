@@ -24,8 +24,6 @@ class WebRTCService {
         console.log(`WebRTCService initialized with session ID: ${this.sessionId}`);
     }
 
-
-export default WebRTCService;
     async createOffer() {
         console.log('Creating WebRTC offer...');
         const offer = await this.peerConnection.createOffer();
