@@ -1,6 +1,6 @@
 const express = require('express');
 const next = require('next');
-const WebSocket = require('ws'); // Example for WebSocket server
+const WebSocket = require('ws');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -20,13 +20,20 @@ app.prepare().then(() => {
       console.log(`Received message: ${message}`);
       ws.send('Message received');
     });
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+    });
   });
 
-  // Handle WebSocket upgrade
+  // Handle WebSocket upgrade only for /api/signaling
   server.on('upgrade', (request, socket, head) => {
-    wss.handleUpgrade(request, socket, head, (ws) => {
-      wss.emit('connection', ws, request);
-    });
+    if (request.url === '/api/signaling') {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    } else {
+      socket.destroy();
+    }
   });
 
   // Express middleware for API routes and pages
