@@ -14,7 +14,6 @@
     "react-dom": "latest",
     "qrcode.react": "latest",
     "uuid": "latest",
-    "express": "latest",
     "ws": "^8.0.0",
     "react-type-animation": "latest"
   },
