@@ -1,70 +1,73 @@
 /* Home.css */
 
 .home-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  font-family: Arial, sans-serif;
-  color: #333;
-  background-color: #f9f9f9;
-  text-align: center;
-  padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+    color: #333;
+    background-color: #f9f9f9;
+    text-align: center;
+    padding: 20px;
 }
 
 .title {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 20px;
-  color: #3c4a61;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #3c4a61;
 }
 
-.connection-info, .connected-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.connection-info,
+.connected-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.instructions, .session-details, .connected-session {
-  margin: 10px 0;
-  color: #5a5a5a;
-  font-size: 1rem;
+.instructions,
+.session-details,
+.connected-session {
+    margin: 10px 0;
+    color: #5a5a5a;
+    font-size: 1rem;
 }
 
 .settings-button {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #5a5a5a;
-  opacity: 0.7;
-  transition: opacity 0.2s;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #5a5a5a;
+    opacity: 0.7;
+    transition: opacity 0.2s;
 }
 
 .settings-button:hover {
-  opacity: 1;
+    opacity: 1;
 }
 
 .connected-info .connected-session {
-  font-size: 1.2rem;
-  font-style: italic;
-  color: #3c4a61;
+    font-size: 1.2rem;
+    font-style: italic;
+    color: #3c4a61;
 }
 
 .qr-code img {
-  width: 200px;
-  height: 200px;
-  margin: 20px 0;
+    width: 200px;
+    height: 200px;
+    margin: 20px 0;
 }
 
 @media (max-width: 600px) {
-  .title {
-    font-size: 1.5rem;
-  }
-  .qr-code img {
-    width: 150px;
-    height: 150px;
-  }
+    .title {
+        font-size: 1.5rem;
+    }
+    .qr-code img {
+        width: 150px;
+        height: 150px;
+    }
 }

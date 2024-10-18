@@ -1,33 +1,39 @@
 {
-  "name": "owd-aac-display-app",
-  "version": "1.0.0",
-  "description": "A Next.js app for AAC display with WebRTC and BLE support",
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "qrcode.react": "latest",
-    "uuid": "latest",
-    "ws": "^8.0.0",
-    "react-type-animation": "latest"
-  },
-  "engines": {
-    "node": "20.9.0"
-  },
-  "keywords": [
-    "AAC",
-    "Next.js",
-    "WebRTC",
-    "BLE",
-    "React",
-    "QR Code",
-    "Text Animation"
-  ],
-  "author": "will wade",
-  "license": "MIT"
+    "name": "ows-aac-display-app",
+    "version": "1.0.0",
+    "description": "A Next.js app for AAC display with WebRTC and BLE support",
+    "main": "server.js",
+    "scripts": {
+        "dev": "node server.js",
+        "build": "next build",
+        "start": "NODE_ENV=production node server.js"
+    },
+    "dependencies": {
+        "anime": "^0.1.2",
+        "express": "^4.21.1",
+        "next": "latest",
+        "next-pwa": "^5.6.0",
+        "qrcode.react": "latest",
+        "react": "latest",
+        "react-dom": "latest",
+        "react-type-animation": "latest",
+        "socket.io": "^4.8.0",
+        "socket.io-client": "^4.8.0",
+        "uuid": "latest",
+        "ws": "^8.0.0"
+    },
+    "engines": {
+        "node": "20.9.0"
+    },
+    "keywords": [
+        "AAC",
+        "Next.js",
+        "WebRTC",
+        "BLE",
+        "React",
+        "QR Code",
+        "Text Animation"
+    ],
+    "author": "will wade",
+    "license": "MIT"
 }

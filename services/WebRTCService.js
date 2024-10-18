@@ -1,115 +1,116 @@
-import { v4 as uuidv4 } from 'uuid';
+import { io } from "socket.io-client";
 
 class WebRTCService {
-    constructor(onMessageReceived) {
+    constructor(onMessageReceived, isSender = true) {
         this.onMessageReceived = onMessageReceived;
-        this.peerConnection = new RTCPeerConnection();
-        this.channel = this.peerConnection.createDataChannel('messaging');
-        this.channel.onmessage = (event) => this.onMessageReceived(event.data);
-        this.connectionHandler = null;
-        this.heartbeatInterval = null;
-        this.reconnectInterval = 1000;
-        this.isConnected = false;
-        this.sessionId = uuidv4();
+        this.isSender = isSender;
+        this.peerConnection = new RTCPeerConnection({
+            iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        });
+        this.channel = null;
 
-        this.peerConnection.oniceconnectionstatechange = () => {
-            console.log(`ICE connection state changed to: ${this.peerConnection.iceConnectionState}`);
-            if (this.peerConnection.iceConnectionState === 'disconnected' || 
-                this.peerConnection.iceConnectionState === 'failed') {
-                this.isConnected = false;
-                console.warn('Peer connection failed or disconnected');
+        if (isSender) {
+            this.channel = this.peerConnection.createDataChannel("messaging");
+            this.channel.onopen = () => console.log("Data channel opened");
+            this.channel.onclose = () => console.log("Data channel closed");
+            this.channel.onmessage = (event) =>
+                this.onMessageReceived(event.data);
+        } else {
+            this.peerConnection.ondatachannel = (event) => {
+                this.channel = event.channel;
+                this.channel.onopen = () => console.log("Data channel opened");
+                this.channel.onclose = () => console.log("Data channel closed");
+                this.channel.onmessage = (msgEvent) =>
+                    this.onMessageReceived(msgEvent.data);
+            };
+        }
+
+        this.peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                this.socket.emit("signal", {
+                    sessionId: this.sessionId,
+                    data: { type: "ice-candidate", candidate: event.candidate },
+                });
             }
         };
 
-        console.log(`WebRTCService initialized with session ID: ${this.sessionId}`);
+        this.connectionHandler = null;
+        this.isConnected = false;
     }
 
     async createOffer() {
-        console.log('Creating WebRTC offer...');
-        const offer = await this.peerConnection.createOffer();
-        await this.peerConnection.setLocalDescription(offer);
-        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-            console.log('Sending WebRTC offer via WebSocket');
-            this.socket.send(JSON.stringify({ type: 'offer', sessionId: this.sessionId, data: offer }));
-        } else {
-            console.warn('WebSocket is not open. Offer not sent.');
+        if (this.isSender) {
+            const offer = await this.peerConnection.createOffer();
+            await this.peerConnection.setLocalDescription(offer);
+            this.socket.emit("signal", {
+                sessionId: this.sessionId,
+                data: { type: "offer", offer },
+            });
         }
     }
 
-    connect(websocketURL) {
-        const urlWithSession = `${websocketURL}?sessionId=${this.sessionId}`;
-        console.log(`Connecting to WebSocket at: ${urlWithSession}`);
-        this.socket = new WebSocket(urlWithSession);
+    connect(websocketURL, sessionId) {
+        this.socket = io(websocketURL);
+        this.sessionId = sessionId;
 
-        this.socket.onopen = () => {
-            console.log('WebSocket connection established');
-            this.reconnectInterval = 1000; // Reset reconnect interval
-            this.createOffer();
-            this.startHeartbeat();
-        };
+        this.socket.emit("joinSession", this.sessionId);
 
-        this.socket.onmessage = (event) => {
-            const message = JSON.parse(event.data);
-            if (message.type === 'answer') {
-                console.log('Received WebRTC answer');
-                this.peerConnection.setRemoteDescription(new RTCSessionDescription(message.data));
-                this.isConnected = true;
-                if (this.connectionHandler) this.connectionHandler();
-            } else if (message === 'pong') {
-                console.log('Heartbeat pong received');
+        this.socket.on("signal", async (message) => {
+            if (this.isSender) {
+                if (message.type === "answer") {
+                    await this.peerConnection.setRemoteDescription(
+                        new RTCSessionDescription(message.answer)
+                    );
+                    this.isConnected = true;
+                    if (this.connectionHandler) this.connectionHandler();
+                }
             } else {
-                console.log('Unknown message received via WebSocket:', message);
+                if (message.type === "offer") {
+                    await this.peerConnection.setRemoteDescription(
+                        new RTCSessionDescription(message.offer)
+                    );
+                    const answer = await this.peerConnection.createAnswer();
+                    await this.peerConnection.setLocalDescription(answer);
+                    this.socket.emit("signal", {
+                        sessionId: this.sessionId,
+                        data: { type: "answer", answer },
+                    });
+                }
             }
-        };
 
-        this.socket.onclose = () => {
-            console.warn('WebSocket connection closed. Attempting to reconnect...');
-            this.stopHeartbeat();
-            this.isConnected = false;
-            setTimeout(() => this.connect(websocketURL), this.reconnectInterval);
-            this.reconnectInterval = Math.min(this.reconnectInterval * 2, 30000); // Exponential backoff
-        };
+            if (message.type === "ice-candidate" && message.candidate) {
+                try {
+                    await this.peerConnection.addIceCandidate(
+                        new RTCIceCandidate(message.candidate)
+                    );
+                } catch (e) {
+                    console.error("Error adding received ICE candidate", e);
+                }
+            }
+        });
 
-        this.socket.onerror = (error) => {
-            console.error('WebSocket encountered an error:', error);
-        };
+        this.socket.on("connect", () => {
+            if (this.isSender) this.createOffer();
+        });
     }
 
     onConnection(callback) {
         this.connectionHandler = callback;
-        console.log('Connection handler set for WebRTCService');
     }
 
     async sendMessage(message) {
-        if (this.channel.readyState === 'open') {
-            console.log('Sending message via data channel:', message);
+        if (this.channel && this.channel.readyState === "open") {
             this.channel.send(message);
         } else {
-            console.warn('Data channel is not open. Message not sent.');
+            console.warn("Data channel is not open. Message not sent.");
         }
     }
 
     disconnect() {
         if (this.channel) this.channel.close();
         if (this.peerConnection) this.peerConnection.close();
-        if (this.socket) this.socket.close();
-        this.stopHeartbeat();
-        console.log("WebRTC and WebSocket connections closed");
-    }
-
-    startHeartbeat() {
-        console.log('Starting heartbeat...');
-        this.heartbeatInterval = setInterval(() => {
-            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-                console.log('Sending heartbeat ping');
-                this.socket.send('ping');
-            }
-        }, 5000);
-    }
-
-    stopHeartbeat() {
-        clearInterval(this.heartbeatInterval);
-        console.log('Heartbeat stopped');
+        if (this.socket) this.socket.disconnect();
+        console.log("WebRTC and Socket.io connections closed");
     }
 }
 

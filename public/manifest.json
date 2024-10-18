@@ -1,1 +1,8 @@
-{"name": "AAC Display App", "short_name": "DisplayApp", "start_url": "/", "display": "standalone", "background_color": "#ffffff", "theme_color": "#000000"}
+{
+    "name": "AAC Display App",
+    "short_name": "DisplayApp",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000"
+}
