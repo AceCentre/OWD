@@ -10,7 +10,7 @@
     },
     "dependencies": {
         "anime": "^0.1.2",
-        "express": "^4.21.1",
+        "antd": "latest",
         "next": "latest",
         "next-pwa": "^5.6.0",
         "qrcode.react": "latest",
