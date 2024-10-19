@@ -1,33 +1,30 @@
 /* In styles/globals.css */
 
+/* You can keep body margin, padding, and background, but remove font-family and flexbox layout */
 body {
-    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f4f4f9;
+    background-color: #f4f4f9; /* Optional, or use Ant Design theme for background color */
 }
 
+/* Remove custom styling for display-container if you're using Ant Design layout components */
 #display-container {
-    text-align: center;
-    width: 100%;
+    width: 100%; 
 }
 
+/* Remove input and button custom styles since Ant Design components handle this */
 .settings-panel,
 .qr-code {
     margin-top: 20px;
     background: #ffffff;
     padding: 15px;
     border-radius: 8px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Keep this if you need it */
 }
 
-input,
-button {
-    margin: 8px;
-    padding: 5px;
-    font-size: 1rem;
+/* Optional media query for small adjustments */
+@media (max-width: 768px) {
+    #display-container {
+        padding: 10px;
+    }
 }
