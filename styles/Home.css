@@ -55,6 +55,14 @@ h1 {
     background-color: #e0e0e0;
 }
 
+/* Add a media query for smaller screens */
+@media (max-width: 768px) {
+    .settings-button {
+        top: 10px;  /* Adjust the top position for smaller screens */
+        right: 10px;  /* Adjust the right position for smaller screens */
+    }
+}
+
 .session-details {
     margin-top: 20px;
     font-size: 1.2rem;
