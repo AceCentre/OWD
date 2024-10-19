@@ -1,73 +1,62 @@
 /* Home.css */
-
-.home-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
+body {
+    margin: 0;
     font-family: Arial, sans-serif;
-    color: #333;
-    background-color: #f9f9f9;
-    text-align: center;
-    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
 }
 
-.title {
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #3c4a61;
-}
-
-.connection-info,
-.connected-info {
+#display-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
+    text-align: center;
 }
 
-.instructions,
-.session-details,
-.connected-session {
-    margin: 10px 0;
-    color: #5a5a5a;
-    font-size: 1rem;
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.display-text {
+    font-size: 3rem;
+    color: #4A90E2;
+    transition: opacity 0.5s ease;
+}
+
+.qr-code-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .settings-button {
     position: absolute;
     top: 20px;
     right: 20px;
-    font-size: 1.5rem;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
     cursor: pointer;
-    color: #5a5a5a;
-    opacity: 0.7;
-    transition: opacity 0.2s;
+    transition: background-color 0.3s;
 }
 
 .settings-button:hover {
-    opacity: 1;
+    background-color: #e0e0e0;
 }
 
-.connected-info .connected-session {
+.session-details {
+    margin-top: 20px;
     font-size: 1.2rem;
-    font-style: italic;
-    color: #3c4a61;
-}
-
-.qr-code img {
-    width: 200px;
-    height: 200px;
-    margin: 20px 0;
-}
-
-@media (max-width: 600px) {
-    .title {
-        font-size: 1.5rem;
-    }
-    .qr-code img {
-        width: 150px;
-        height: 150px;
-    }
+    color: #666;
 }
