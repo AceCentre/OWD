@@ -1,4 +1,3 @@
-jsx
 import React, { useState, useEffect } from "react";
 import DisplayText from "../components/DisplayText";
 import QRCodeDisplay from "../components/QRCodeDisplay";
