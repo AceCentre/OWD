@@ -1,70 +1,10 @@
-/* Home.css */
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f0f0f0;
-}
-
 #display-container {
-    position: relative;
-    width: 100%;
     height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+    padding: 20px;
 }
 
-h1 {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-    color: #333;
-}
-
-.display-text {
-    font-size: 3rem;
-    color: #4A90E2;
-    transition: opacity 0.5s ease;
-}
-
-.qr-code-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.settings-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.settings-button:hover {
-    background-color: #e0e0e0;
-}
-
-/* Add a media query for smaller screens */
 @media (max-width: 768px) {
-    .settings-button {
-        top: 10px;  /* Adjust the top position for smaller screens */
-        right: 10px;  /* Adjust the right position for smaller screens */
+    #display-container {
+        padding: 10px;
     }
-}
-
-.session-details {
-    margin-top: 20px;
-    font-size: 1.2rem;
-    color: #666;
 }
