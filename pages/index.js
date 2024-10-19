@@ -1,9 +1,11 @@
+jsx
 import React, { useState, useEffect } from "react";
 import DisplayText from "../components/DisplayText";
 import QRCodeDisplay from "../components/QRCodeDisplay";
 import SettingsPanel from "../components/SettingsPanel";
 import WebRTCService from "../services/WebRTCService";
 import { v4 as uuidv4 } from "uuid";
+import './Home.css';
 
 const Home = () => {
     const [text, setText] = useState("Waiting for messages...");
@@ -53,23 +55,20 @@ const Home = () => {
             <h1>Open Wireless Display</h1>
 
             {isConnected ? (
-                <>
-                    <p>Connected to session: {sessionId}</p>
-                    <DisplayText text={text} {...settings} />
-                </>
+                <div className="display-text">{text}</div>
             ) : (
-                <>
-                    <p>Session ID: {sessionId}</p>
+                <div className="qr-code-container">
                     <QRCodeDisplay sessionId={sessionId} />
+                    <p className="session-details">Session ID: {sessionId}</p>
                     <p>Scan the QR code to connect from a sender device.</p>
-                </>
+                </div>
             )}
 
             <div
                 className="settings-button"
                 onClick={() => setIsConnected(!isConnected)}
             >
-                ⚙️ Settings
+                Settings
             </div>
 
             {isConnected && <SettingsPanel onSettingsChange={setSettings} />}
