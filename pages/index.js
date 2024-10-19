@@ -16,6 +16,7 @@ const Home = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [sessionId, setSessionId] = useState("");
     const [websocketURL, setWebsocketURL] = useState("");
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     useEffect(() => {
         setSessionId(uuidv4());
@@ -52,8 +53,10 @@ const Home = () => {
         <div id="display-container">
             <h1>Open Wireless Display</h1>
 
-            {isConnected ? (
-                <div className="display-text">{text}</div>
+            {isConnected && !isSettingsOpen ? (
+                <div className="display-text" style={{ fontSize: settings.fontSize, color: settings.color }}>
+                    {text}
+                </div>
             ) : (
                 <div className="qr-code-container">
                     <QRCodeDisplay sessionId={sessionId} />
@@ -64,12 +67,12 @@ const Home = () => {
 
             <div
                 className="settings-button"
-                onClick={() => setIsConnected(!isConnected)}
+                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
             >
                 Settings
             </div>
 
-            {isConnected && <SettingsPanel onSettingsChange={setSettings} />}
+            {isSettingsOpen && <SettingsPanel onSettingsChange={setSettings} />}
         </div>
     );
 };
