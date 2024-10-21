@@ -52,7 +52,7 @@ const Home = () => {
         <AntComponents.Flex
             justify="center"
             align="center"
-            style={{ backgroundColor: settings.backgroundColor }}
+            style={{ ...settings, height: "100vh", width: "100vw" }}
         >
             {isConnected ? (
                 <TextDisplay text={text} {...settings} />

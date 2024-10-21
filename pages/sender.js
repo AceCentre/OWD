@@ -1,14 +1,22 @@
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import WebRTCService from "../services/WebRTCService";
 import { AntComponents } from "../antComponents/AntComponents";
 
 const SenderApp = () => {
+    const router = useRouter();
     const [isConnected, setIsConnected] = useState(false);
     const [message, setMessage] = useState("");
     const [sessionId, setSessionId] = useState("");
     const [webrtcService, setWebrtcService] = useState(null);
 
     const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
+
+    useEffect(() => {
+        if (router.query.sessionId) {
+            setSessionId(router.query.sessionId);
+        }
+    }, [router.query]);
 
     useEffect(() => {
         if (webrtcService) {
@@ -37,6 +45,20 @@ const SenderApp = () => {
             );
         }
     }, [message]);
+
+    const handleSessionId = (e) => {
+        const newSessionId = e.target.value;
+        setSessionId(newSessionId);
+
+        router.replace(
+            {
+                pathname: "/sender",
+                query: { sessionId: newSessionId },
+            },
+            undefined,
+            { shallow: true }
+        );
+    };
 
     const handleConnect = () => {
         if (sessionId) {
@@ -96,7 +118,7 @@ const SenderApp = () => {
                     <AntComponents.Input
                         className="sender-input"
                         disabled={isConnected}
-                        onChange={(e) => setSessionId(e.target.value)}
+                        onChange={handleSessionId}
                         placeholder="Enter Session ID"
                         type="text"
                         value={sessionId}
