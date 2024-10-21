@@ -13,7 +13,14 @@ app.prepare().then(() => {
         handle(req, res, parsedUrl);
     });
 
-    const io = new Server(server);
+     // Configure Socket.io to allow CORS
+    const io = new Server(server, {
+        cors: {
+            origin: "*",  // Replace with the URL of your front-end app in production
+            methods: ["GET", "POST"],
+            credentials: true  // Enable credentials if needed
+        }
+    });
 
     const sessions = {};
 
