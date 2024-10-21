@@ -59,7 +59,10 @@ class WebRTCService {
 
     connect(websocketURL, sessionId) {
         this.sessionId = sessionId;
-        this.socket = io(websocketURL);
+        this.socket = io(websocketURL, {
+            transports: ['websocket'],  // Force WebSocket
+            withCredentials: true       // Enable credentials if necessary
+        });
 
         this.socket.emit("joinSession", this.sessionId);
 
@@ -98,6 +101,7 @@ class WebRTCService {
         });
 
         this.socket.on("connect", () => {
+            console.log("WebSocket connected to:", websocketURL);
             if (this.isSender) this.createOffer();
         });
     }

@@ -20,7 +20,8 @@ app.prepare().then(() => {
         cors: {
             origin: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
             methods: ["GET", "POST"],
-            credentials: true,  // If using cookies/auth headers
+            credentials: true,
+            allowUpgrades: true,
         },
         transports: ["websocket", "polling"],  // Ensure both websocket and polling are enabled
     });

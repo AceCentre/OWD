@@ -5,7 +5,10 @@ let io;
 export default function handler(req, res) {
     if (!io) {
         if (!res.socket.server.io) {
-            const io = new Server(res.socket.server);
+            io = new Server(res.socket.server, {
+                transports: ['websocket'],  // Force WebSocket transport
+                allowUpgrades: true,        // Allow upgrades from HTTP polling (if needed)
+            });
             res.socket.server.io = io;
             const sessions = {};
 
