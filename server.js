@@ -7,20 +7,21 @@ const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
+const allowedOrigin = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
 app.prepare().then(() => {
     const server = createServer((req, res) => {
         const parsedUrl = parse(req.url, true);
         handle(req, res, parsedUrl);
     });
 
-     // Configure Socket.io to allow CORS
+    // Configure Socket.io to allow CORS with the environment variable
     const io = new Server(server, {
         cors: {
-            origin: "*",  // Replace with the URL of your front-end app in production
+            origin: allowedOrigin,  // Use the environment variable
             methods: ["GET", "POST"],
-            credentials: true  // Enable credentials if needed
+            credentials: true  // Enable if you're using cookies or auth headers
         }
-    });
 
     const sessions = {};
 
