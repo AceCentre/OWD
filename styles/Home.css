@@ -1,10 +1,74 @@
-#display-container {
-    height: 100%;
-    padding: 20px;
+/* Home.css */
+
+.display-container {
+    height: 100vh;
+    width: 100vw;
 }
 
-@media (max-width: 768px) {
-    #display-container {
-        padding: 10px;
+.settings-button-container {
+    position: fixed;
+    bottom: 5px;
+    left: 5px;
+}
+
+.settings-button {
+    font-size: 1rem;
+    cursor: pointer;
+    color: #5a5a5a;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+}
+
+.settings-button:hover {
+    opacity: 1;
+}
+
+.settings-input-number,
+.settings-select {
+    width: 100%;
+}
+
+@media (max-width: 600px) {
+    .settings-panel {
+        width: 80%;
+    }
+}
+
+.text-display-row {
+    height: "100vh";
+}
+
+.text-display-col {
+    text-align: left;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    white-space: pre-wrap;
+    overflow: hidden;
+}
+
+
+@keyframes scroll-up {
+    0% {
+        transform: translateY(100%);
+    }
+    100% {
+        transform: translateY(-100%);
+    }
+}
+
+@media (max-width: 600px) {
+    .qr-code {
+        width: 100%;
+    }
+
+    .qr-code .qr-code-header {
+        font-size: 1.2rem;
+    }
+
+    .qr-code .qr-code-img {
+        width: 192px !important;
+        height: 192px !important;
     }
 }

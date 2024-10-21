@@ -1,47 +1,105 @@
 import React, { useState } from "react";
+import { AntComponents } from "../antComponents/AntComponents";
 
-const SettingsPanel = ({ onSettingsChange }) => {
-    const [fontSize, setFontSize] = useState(24);
-    const [speed, setSpeed] = useState(50);
-    const [color, setColor] = useState("#000000");
-    const [lines, setLines] = useState(3);
+const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
+    const [animationType, setAnimationType] = useState(settings.animationType);
+    const [backgroundColor, setBackgroundColor] = useState(
+        settings.backgroundColor
+    );
+    const [color, setColor] = useState(settings.color);
+    const [fontSize, setFontSize] = useState(settings.fontSize);
+    const [lines, setLines] = useState(settings.lines);
+    const [speed, setSpeed] = useState(settings.speed);
 
     const handleUpdate = () => {
-        onSettingsChange({ fontSize: `${fontSize}px`, color, speed, lines });
+        onSettingsChange({
+            animationType,
+            backgroundColor,
+            color,
+            fontSize,
+            lines,
+            speed,
+        });
+        closeSettings();
     };
 
     return (
-        <div className="settings-panel">
-            <label>Font Size</label>
-            <input
-                type="number"
-                value={fontSize}
-                onChange={(e) => setFontSize(Number(e.target.value))}
-            />
+        <AntComponents.Modal
+            open={true}
+            title={<h3>Settings</h3>}
+            footer={
+                <AntComponents.Button type="primary" onClick={handleUpdate}>
+                    Apply
+                </AntComponents.Button>
+            }
+            onCancel={closeSettings}
+        >
+            <AntComponents.Form layout="vertical">
+                <AntComponents.Item label="Font Size">
+                    <AntComponents.InputNumber
+                        className="settings-input-number"
+                        max={100}
+                        min={10}
+                        onChange={setFontSize}
+                        placeholder="Select font size"
+                        value={fontSize}
+                    />
+                </AntComponents.Item>
 
-            <label>Color</label>
-            <input
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-            />
+                <AntComponents.Item label="Color">
+                    <AntComponents.Input
+                        onChange={(e) => setColor(e.target.value)}
+                        type="color"
+                        value={color}
+                    />
+                </AntComponents.Item>
 
-            <label>Speed</label>
-            <input
-                type="number"
-                value={speed}
-                onChange={(e) => setSpeed(Number(e.target.value))}
-            />
+                <AntComponents.Item label="Background Color">
+                    <AntComponents.Input
+                        onChange={(e) => setBackgroundColor(e.target.value)}
+                        type="color"
+                        value={backgroundColor}
+                    />
+                </AntComponents.Item>
 
-            <label>Lines</label>
-            <input
-                type="number"
-                value={lines}
-                onChange={(e) => setLines(Number(e.target.value))}
-            />
+                <AntComponents.Item label="Lines">
+                    <AntComponents.InputNumber
+                        className="settings-input-number"
+                        max={53}
+                        min={1}
+                        onChange={setLines}
+                        placeholder="Select lines"
+                        value={lines}
+                    />
+                </AntComponents.Item>
 
-            <button onClick={handleUpdate}>Apply</button>
-        </div>
+                <AntComponents.Item label="Speed">
+                    <AntComponents.InputNumber
+                        className="settings-input-number"
+                        max={50}
+                        min={1}
+                        onChange={setSpeed}
+                        placeholder="Select speed"
+                        value={speed}
+                    />
+                </AntComponents.Item>
+
+                <AntComponents.Item label="Animation Type">
+                    <AntComponents.Select
+                        className="settings-select"
+                        onChange={setAnimationType}
+                        value={animationType}
+                    >
+                        <AntComponents.Option value="typing">
+                            Typing
+                        </AntComponents.Option>
+                        <AntComponents.Option value="scroll">
+                            Scrolling
+                        </AntComponents.Option>
+                    </AntComponents.Select>
+                </AntComponents.Item>
+            </AntComponents.Form>
+        </AntComponents.Modal>
     );
 };
 

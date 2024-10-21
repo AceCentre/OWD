@@ -1,3 +1,4 @@
+import "antd/dist/reset.css";
 import "../styles/globals.css";
 import "../styles/Home.css";
 import App from "next/app";

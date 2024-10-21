@@ -1,30 +1,67 @@
-/* In styles/globals.css */
+/* global.css */
 
-/* You can keep body margin, padding, and background, but remove font-family and flexbox layout */
 body {
     margin: 0;
     padding: 0;
-    background-color: #f4f4f9; /* Optional, or use Ant Design theme for background color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #ffffff;
+    font-family: Arial, sans-serif;
 }
 
-/* Remove custom styling for display-container if you're using Ant Design layout components */
-#display-container {
-    width: 100%; 
-}
-
-/* Remove input and button custom styles since Ant Design components handle this */
-.settings-panel,
-.qr-code {
-    margin-top: 20px;
-    background: #ffffff;
-    padding: 15px;
+.sender-container {
+    width: 500px;
+    padding: 24px;
     border-radius: 8px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Keep this if you need it */
+    border: 1px solid #f0f0f0;
 }
 
-/* Optional media query for small adjustments */
-@media (max-width: 768px) {
-    #display-container {
-        padding: 10px;
+.sender-layout,
+.sender-footer,
+.sender-header {
+    background-color: #ffffff;
+    text-align: center;
+    justify-content: center;
+}
+
+.sender-input-container {
+    width: 100%;
+    display: flex;
+    margin: 5px 0 10px 0;
+}
+
+.sender-input-container .sender-input {
+    border-radius: 3px 0 0 3px;
+    flex: 1;
+}
+
+.sender-input-container .sender-button {
+    border-radius: 0 3px 3px 0;
+    border-left: 0;
+    width: 120px;
+}
+
+.sender-footer {
+    padding: 5px 0 0 0;
+}
+
+.sender-footer .sender-connect-state {
+    font-size: 14px;
+}
+
+@media (max-width: 600px) {
+    .sender-container {
+        width: 100% !important;
+        padding: 12px;
+    }
+
+    .sender-title {
+        font-size: 1.5rem !important;
+    }
+
+    .sender-input-container {
+        margin-top: 0;
     }
 }

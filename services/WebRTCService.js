@@ -2,24 +2,32 @@ import { io } from "socket.io-client";
 
 class WebRTCService {
     constructor(onMessageReceived, isSender = true) {
-        this.onMessageReceived = onMessageReceived;
+        this.channel = null;
+        this.channelOpenCallback = null;
+        this.isChannelOpen = false;
         this.isSender = isSender;
+        this.onMessageReceived = onMessageReceived;
         this.peerConnection = new RTCPeerConnection({
             iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
         });
-        this.channel = null;
 
         if (isSender) {
             this.channel = this.peerConnection.createDataChannel("messaging");
-            this.channel.onopen = () => console.log("Data channel opened");
-            this.channel.onclose = () => console.log("Data channel closed");
+            this.channel.onopen = () => {
+                this.isChannelOpen = true;
+                if (this.channelOpenCallback) this.channelOpenCallback();
+            };
+            this.channel.onclose = () => (this.isChannelOpen = false);
             this.channel.onmessage = (event) =>
                 this.onMessageReceived(event.data);
         } else {
             this.peerConnection.ondatachannel = (event) => {
                 this.channel = event.channel;
-                this.channel.onopen = () => console.log("Data channel opened");
-                this.channel.onclose = () => console.log("Data channel closed");
+                this.channel.onopen = () => {
+                    this.isChannelOpen = true;
+                    if (this.channelOpenCallback) this.channelOpenCallback();
+                };
+                this.channel.onclose = () => (this.isChannelOpen = false);
                 this.channel.onmessage = (msgEvent) =>
                     this.onMessageReceived(msgEvent.data);
             };
@@ -50,8 +58,8 @@ class WebRTCService {
     }
 
     connect(websocketURL, sessionId) {
-        this.socket = io(websocketURL);
         this.sessionId = sessionId;
+        this.socket = io(websocketURL);
 
         this.socket.emit("joinSession", this.sessionId);
 
@@ -98,6 +106,13 @@ class WebRTCService {
         this.connectionHandler = callback;
     }
 
+    onChannelOpen(callback) {
+        this.channelOpenCallback = callback;
+        if (this.isChannelOpen && this.channelOpenCallback) {
+            this.channelOpenCallback();
+        }
+    }
+
     async sendMessage(message) {
         if (this.channel && this.channel.readyState === "open") {
             this.channel.send(message);
@@ -106,11 +121,14 @@ class WebRTCService {
         }
     }
 
+    isDataChannelReady() {
+        return this.isChannelOpen;
+    }
+
     disconnect() {
         if (this.channel) this.channel.close();
         if (this.peerConnection) this.peerConnection.close();
         if (this.socket) this.socket.disconnect();
-        console.log("WebRTC and Socket.io connections closed");
     }
 }
 
