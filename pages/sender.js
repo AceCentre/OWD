@@ -61,6 +61,7 @@ const SenderApp = () => {
     };
 
     const handleConnect = () => {
+        console.log("WebSocket URL:", websocketURL);
         if (sessionId) {
             const webrtc = new WebRTCService((receivedMessage) => {
                 console.log("Received:", receivedMessage);

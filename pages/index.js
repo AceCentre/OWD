@@ -27,6 +27,7 @@ const Home = () => {
     }, []);
 
     useEffect(() => {
+        console.log("WebSocket URL:", websocketURL);
         if (sessionId && websocketURL) {
             const webrtc = new WebRTCService((receivedMessage) => {
                 const messageData = JSON.parse(receivedMessage);
