@@ -39,7 +39,9 @@ const Home = () => {
                 }
             }, false);
 
-            webrtc.connect(websocketURL, sessionId);
+            webrtc.connect(websocketURL, sessionId, {
+                transports: ['websocket'],
+            });
 
             return () => {
                 webrtc.disconnect();

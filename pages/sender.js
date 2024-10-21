@@ -67,7 +67,9 @@ const SenderApp = () => {
             }, true);
 
             webrtc.onConnection(() => setIsConnected(true));
-            webrtc.connect(websocketURL, sessionId);
+            webrtc.connect(websocketURL, sessionId, {
+                transports: ['websocket'],
+            });
             setWebrtcService(webrtc);
         } else {
             console.warn("Session ID is required to connect");
