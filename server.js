@@ -18,10 +18,12 @@ app.prepare().then(() => {
     // Configure Socket.io to allow CORS with the environment variable
     const io = new Server(server, {
         cors: {
-            origin: allowedOrigin,  // Use the environment variable
+            origin: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
             methods: ["GET", "POST"],
-            credentials: true  // Enable if you're using cookies or auth headers
-        }
+            credentials: true,  // If using cookies/auth headers
+        },
+        transports: ["websocket", "polling"],  // Ensure both websocket and polling are enabled
+    });
 
     const sessions = {};
 
