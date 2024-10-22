@@ -7,8 +7,35 @@ class WebRTCService {
         this.isChannelOpen = false;
         this.isSender = isSender;
         this.onMessageReceived = onMessageReceived;
-        this.peerConnection = new RTCPeerConnection({
-            iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        var myPeerConnection = new RTCPeerConnection({
+            iceServers: [
+                {
+                    urls: "stun:stun.l.google.com:19302",  // Google's public STUN server
+                },
+                {
+                    urls: "stun:stun.relay.metered.ca:80",  // Metered's STUN server
+                },
+                {
+                    urls: "turn:global.relay.metered.ca:80",
+                    username: "dc6707c0bdabae99498a0570",
+                    credential: "t0a8EBJnJrZjLTV/",
+                },
+                {
+                    urls: "turn:global.relay.metered.ca:80?transport=tcp",
+                    username: "dc6707c0bdabae99498a0570",
+                    credential: "t0a8EBJnJrZjLTV/",
+                },
+                {
+                    urls: "turn:global.relay.metered.ca:443",
+                    username: "dc6707c0bdabae99498a0570",
+                    credential: "t0a8EBJnJrZjLTV/",
+                },
+                {
+                    urls: "turns:global.relay.metered.ca:443?transport=tcp",
+                    username: "dc6707c0bdabae99498a0570",
+                    credential: "t0a8EBJnJrZjLTV/",
+                },
+            ],
         });
 
         if (isSender) {
