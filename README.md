@@ -51,7 +51,7 @@ OWD is designed to provide a flexible and customizable AAC display. It allows se
 3. **Run the Development Server**:
 
     ```bash
-    npm run dev
+    node server.js
     ```
 
 4. **View the App**:
@@ -61,13 +61,13 @@ OWD is designed to provide a flexible and customizable AAC display. It allows se
 5. **Build for Production**:
 
     ```bash
-    npm run build
+   next build
     ```
 
 6. **Start the Production Server**:
 
     ```bash
-    npm start
+    node server.js
     ```
 
 ## Project Structure
@@ -174,7 +174,11 @@ If you're developing a native iOS app in **Swift**, you'll need to use **CoreBlu
 
 To deploy the OWD app to a platform like **Heroku** or **DigitalOcean**, follow these steps:
 
-1. Set up the environment variables for WebRTC signaling and BLE configuration (if applicable).
+1. Set up the environment variables for WebRTC signaling and BLE configuration. It needs two
+    environment variables:
+    - `NEXT_PUBLIC_WS_URL`: The URL of the WebRTC signaling server eg wss://owd.acecentre.net.
+    - `NEXT_PUBLIC_BASE_URL`: The base URL of the app eg https://owd.acecentre.net.
+
 2. Define a custom **build command** for your deployment:
    
    ```bash
