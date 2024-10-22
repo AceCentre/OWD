@@ -10,11 +10,11 @@ const Home = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [sessionId, setSessionId] = useState("");
     const [settings, setSettings] = useState({
-        animationType: "typing",  // Animation options
+        animationType: "typing",  // Default animation
         backgroundColor: "#FFFFFF",
         color: "#000000",
-        fontSize: 72,  // Increased default font size to 72px
-        fontFamily: "default",  // Default font family
+        fontSize: 72,  // Default font size
+        fontFamily: "Arial",  // Default font family
         lines: 3,
         speed: 25,
     });
@@ -59,11 +59,15 @@ const Home = () => {
         >
             {isConnected ? (
                 <TextDisplay
-                    key={text}  // Forces re-render to animate only on new message
+                    key={text}  // Re-render on new message to trigger animation
                     text={text}
                     fontSize={settings.fontSize}
                     fontFamily={settings.fontFamily}
                     animationType={settings.animationType}
+                    backgroundColor={settings.backgroundColor}
+                    color={settings.color}
+                    lines={settings.lines}
+                    speed={settings.speed}
                 />
             ) : (
                 <QRCodeDisplay sessionId={sessionId} />

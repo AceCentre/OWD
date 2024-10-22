@@ -6,8 +6,8 @@ const TextDisplay = ({
     animationType,
     backgroundColor,
     color,
-    fontSize = 72,  // Set default font size to 72px
-    fontFamily = "Arial",  // Default font family with customization support
+    fontSize = 72,
+    fontFamily = "Arial",
     lines,
     speed,
     text,
@@ -21,37 +21,68 @@ const TextDisplay = ({
         fontSize,
         lineHeight: `${lineHeight}px`,
         maxHeight: `${containerHeight}px`,
-        fontFamily,  // Apply font family for customization
+        fontFamily,
+    };
+
+    const getAnimationContent = () => {
+        switch (animationType) {
+            case "scroll":
+                return (
+                    <div style={{ overflow: 'hidden', height: containerHeight }}>
+                        <div
+                            style={{
+                                animation: `scroll-up ${speed * 5}s linear`,
+                                animationFillMode: 'forwards',
+                            }}
+                        >
+                            {text}
+                        </div>
+                    </div>
+                );
+            case "typing":
+                return (
+                    <TypeAnimation
+                        cursor={false}
+                        key={text}
+                        sequence={[text, speed]}
+                        speed={Math.max(speed, 50)}
+                    />
+                );
+            case "fade-in":
+                return (
+                    <div
+                        style={{
+                            animation: `fade-in ${Math.max(speed, 2)}s ease-in-out`,
+                            animationFillMode: 'forwards',
+                        }}
+                    >
+                        {text}
+                    </div>
+                );
+            case "slide-in":
+                return (
+                    <div
+                        style={{
+                            animation: `slide-in ${Math.max(speed, 2)}s ease-in-out`,
+                            animationFillMode: 'forwards',
+                        }}
+                    >
+                        {text}
+                    </div>
+                );
+            default:
+                return <div>{text}</div>; // No animation
+        }
     };
 
     return (
-        <AntComponents.Row
-            className="text-display-row"
-            style={{
-                containerStyles,
-            }}
-        >
+        <AntComponents.Row className="text-display-row">
             <AntComponents.Col
                 className="text-display-col"
                 span={24}
                 style={containerStyles}
             >
-                {animationType === "scroll" ? (
-                    <marquee
-                        behavior="scroll"
-                        direction="up"
-                        scrollamount={speed}
-                    >
-                        {text}
-                    </marquee>
-                ) : (
-                    <TypeAnimation
-                        cursor={false}
-                        key={text}
-                        sequence={[text, speed]}  // No repetition, animates once
-                        speed={Math.max(speed, 50)}  // Adjust animation speed for slower effect
-                    />
-                )}
+                {getAnimationContent()}
             </AntComponents.Col>
         </AntComponents.Row>
     );

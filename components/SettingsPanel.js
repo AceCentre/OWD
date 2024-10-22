@@ -3,13 +3,12 @@ import { AntComponents } from "../antComponents/AntComponents";
 
 const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
     const [animationType, setAnimationType] = useState(settings.animationType);
-    const [backgroundColor, setBackgroundColor] = useState(
-        settings.backgroundColor
-    );
+    const [backgroundColor, setBackgroundColor] = useState(settings.backgroundColor);
     const [color, setColor] = useState(settings.color);
     const [fontSize, setFontSize] = useState(settings.fontSize);
     const [lines, setLines] = useState(settings.lines);
     const [speed, setSpeed] = useState(settings.speed);
+    const [fontFamily, setFontFamily] = useState(settings.fontFamily || "Arial");
 
     const handleUpdate = () => {
         onSettingsChange({
@@ -19,6 +18,7 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
             fontSize,
             lines,
             speed,
+            fontFamily,  // Pass the selected font family
         });
         closeSettings();
     };
@@ -44,6 +44,21 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
                         placeholder="Select font size"
                         value={fontSize}
                     />
+                </AntComponents.Item>
+
+                <AntComponents.Item label="Font Style">
+                    <AntComponents.Select
+                        className="settings-select"
+                        onChange={setFontFamily}
+                        value={fontFamily}
+                    >
+                        <AntComponents.Option value="Arial">Arial (Default)</AntComponents.Option>
+                        <AntComponents.Option value="Dancing Script">
+                            Handwriting (Dancing Script)
+                        </AntComponents.Option>
+                        <AntComponents.Option value="Oswald">Bold Impact (Oswald)</AntComponents.Option>
+                        <AntComponents.Option value="Balsamiq Sans">Cute (Balsamiq Sans)</AntComponents.Option>
+                    </AntComponents.Select>
                 </AntComponents.Item>
 
                 <AntComponents.Item label="Color">
@@ -90,12 +105,11 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
                         onChange={setAnimationType}
                         value={animationType}
                     >
-                        <AntComponents.Option value="typing">
-                            Typing
-                        </AntComponents.Option>
-                        <AntComponents.Option value="scroll">
-                            Scrolling
-                        </AntComponents.Option>
+                        <AntComponents.Option value="none">None</AntComponents.Option>
+                        <AntComponents.Option value="typing">Typing</AntComponents.Option>
+                        <AntComponents.Option value="scroll">Scrolling</AntComponents.Option>
+                        <AntComponents.Option value="fade-in">Fade In</AntComponents.Option>
+                        <AntComponents.Option value="slide-in">Slide In</AntComponents.Option>
                     </AntComponents.Select>
                 </AntComponents.Item>
             </AntComponents.Form>

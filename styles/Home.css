@@ -34,8 +34,10 @@
 
 /* Default Font Display */
 .text-display {
-    font-family: 'Arial', sans-serif; /* Default fallback font */
-    font-size: 72px; /* Increased default size */
+    font-family: 'Arial', sans-serif;
+    /* Default fallback font */
+    font-size: 72px;
+    /* Increased default size */
     color: #000000;
     white-space: pre-wrap;
     overflow: hidden;
@@ -59,14 +61,17 @@
 
 /* Slower Animation */
 .typing-animation {
-    animation: typing 6s steps(40, end); /* Slower animation duration */
-    animation-fill-mode: forwards; /* Ensures the animation only happens once */
+    animation: typing 6s steps(40, end);
+    /* Slower animation duration */
+    animation-fill-mode: forwards;
+    /* Ensures the animation only happens once */
 }
 
 @keyframes typing {
     from {
         width: 0;
     }
+
     to {
         width: 100%;
     }
@@ -74,7 +79,8 @@
 
 /* Slide In Animation (Optional) */
 .slide-in-animation {
-    animation: slideIn 3s ease-out; /* Slower slide in */
+    animation: slideIn 3s ease-out;
+    /* Slower slide in */
     animation-fill-mode: forwards;
 }
 
@@ -82,8 +88,42 @@
     from {
         transform: translateY(100%);
     }
+
     to {
         transform: translateY(0);
+    }
+}
+
+/* Scroll Animation */
+@keyframes scroll-up {
+    0% {
+        transform: translateY(100%);
+    }
+
+    100% {
+        transform: translateY(-100%);
+    }
+}
+
+/* Fade-in Animation */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Slide-in Animation */
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
     }
 }
 
@@ -112,6 +152,7 @@
     0% {
         transform: translateY(100%);
     }
+
     100% {
         transform: translateY(-100%);
     }
