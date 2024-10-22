@@ -105,6 +105,11 @@ const Home = () => {
                 >
                     ⚙️Settings
                 </div>
+                {isConnected && (
+                    <div className="session-id">
+                        Session ID: {sessionId}
+                    </div>
+                )}
             </div>
 
             {showSettings && (
