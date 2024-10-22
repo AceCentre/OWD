@@ -1,7 +1,7 @@
 /* Home.css */
 
 /* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Balsamiq+Sans:wght@400&family=Dancing+Script:wght@400&family=Oswald:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Oswald:wght@200..700&family=Permanent+Marker&display=swap');
 
 /* Base Styles */
 .display-container {
@@ -37,27 +37,29 @@
     font-family: 'Arial', sans-serif;
     /* Default fallback font */
     font-size: 72px;
-    /* Increased default size */
+    /* Default size */
     color: #000000;
     white-space: pre-wrap;
     overflow: hidden;
 }
 
-/* Handwriting Font */
+/* Handwriting Font (Dancing Script) */
 .handwriting-font {
     font-family: 'Dancing Script', cursive;
 }
 
-/* Bold Impactful Font */
+/* Bold Impactful Font (Oswald) */
 .bold-impact-font {
     font-family: 'Oswald', sans-serif;
     font-weight: 700;
 }
 
-/* Cute Font */
-.cute-font {
-    font-family: 'Balsamiq Sans', cursive;
+/* Marker Font (Permanent Marker) */
+.marker-font {
+    font-family: 'Permanent Marker', cursive;
 }
+
+
 
 /* Slower Animation */
 .typing-animation {
@@ -84,7 +86,7 @@
     animation-fill-mode: forwards;
 }
 
-@keyframes slideIn {
+@keyframes slide-in {
     from {
         transform: translateY(100%);
     }

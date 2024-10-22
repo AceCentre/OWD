@@ -57,7 +57,7 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
                             Handwriting (Dancing Script)
                         </AntComponents.Option>
                         <AntComponents.Option value="Oswald">Bold Impact (Oswald)</AntComponents.Option>
-                        <AntComponents.Option value="Balsamiq Sans">Cute (Balsamiq Sans)</AntComponents.Option>
+                        <AntComponents.Option value="Permanent Marker">Marker (Permanent Marker)</AntComponents.Option>
                     </AntComponents.Select>
                 </AntComponents.Item>
 
