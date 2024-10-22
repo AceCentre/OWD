@@ -42,8 +42,9 @@ app.prepare().then(() => {
 
         socket.on("signal", (message) => {
             const { sessionId, data } = message;
-            console.log(`Client ${socket.id} joined session ${sessionId}`);
+            console.log(`Signal received from client ${socket.id} for session ${sessionId}:`, data);
             socket.to(sessionId).emit("signal", data);
+            console.log(`Signal forwarded to session ${sessionId}`);
         });
 
         socket.on("disconnect", () => {

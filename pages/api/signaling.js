@@ -28,6 +28,7 @@ export default function handler(req, res) {
                     const { sessionId, data } = message;
                     console.log(`Signal received in session ${sessionId}:`, data);
                     socket.to(sessionId).emit("signal", data);
+                    console.log(`Signal forwarded to session ${sessionId}`);
                 });
 
                 socket.on("disconnect", () => {
