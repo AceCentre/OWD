@@ -7,7 +7,7 @@ class WebRTCService {
         this.isChannelOpen = false;
         this.isSender = isSender;
         this.onMessageReceived = onMessageReceived;
-        var myPeerConnection = new RTCPeerConnection({
+        this.peerConnection = new RTCPeerConnection({
             iceServers: [
                 {
                     urls: "stun:stun.l.google.com:19302",  // Google's public STUN server
@@ -37,6 +37,8 @@ class WebRTCService {
                 },
             ],
         });
+
+
 
         if (isSender) {
             this.channel = this.peerConnection.createDataChannel("messaging");
