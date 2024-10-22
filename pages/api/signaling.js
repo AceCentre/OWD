@@ -21,10 +21,12 @@ export default function handler(req, res) {
                     }
 
                     sessions[sessionId].add(socket.id);
+                    console.log(`Client ${socket.id} joined session ${sessionId}`);
                 });
 
                 socket.on("signal", (message) => {
                     const { sessionId, data } = message;
+                    console.log(`Signal received in session ${sessionId}:`, data);
                     socket.to(sessionId).emit("signal", data);
                 });
 

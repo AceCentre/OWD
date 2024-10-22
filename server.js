@@ -38,25 +38,26 @@ app.prepare().then(() => {
                 sessions[sessionId] = new Set();
             }
             sessions[sessionId].add(socket.id);
+            console.log(`Client ${socket.id} joined session ${sessionId}`);
         });
 
-        socket.on("signal", (message) => {
-            const { sessionId, data } = message;
 
-            socket.to(sessionId).emit("signal", data);
-        });
+        const { sessionId, data } = message;
 
-        socket.on("disconnect", () => {
-            for (const sessionId in sessions) {
-                sessions[sessionId].delete(socket.id);
-                if (sessions[sessionId].size === 0) delete sessions[sessionId];
-            }
-        });
+        socket.to(sessionId).emit("signal", data);
     });
 
-    const port = process.env.PORT || 3000;
-    server.listen(port, (err) => {
-        if (err) throw err;
-        console.log(`> Ready on http://localhost:${port}`);
+    socket.on("disconnect", () => {
+        for (const sessionId in sessions) {
+            sessions[sessionId].delete(socket.id);
+            if (sessions[sessionId].size === 0) delete sessions[sessionId];
+        }
     });
+});
+
+const port = process.env.PORT || 3000;
+server.listen(port, (err) => {
+    if (err) throw err;
+    console.log(`> Ready on http://localhost:${port}`);
+});
 });
