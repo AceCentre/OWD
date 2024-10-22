@@ -4,7 +4,27 @@ import QRCodeDisplay from "../components/QRCodeDisplay";
 import SettingsPanel from "../components/SettingsPanel";
 import TextDisplay from "../components/TextDisplay";
 import WebRTCService from "../services/WebRTCService";
-import { v4 as uuidv4 } from "uuid";
+import { faker } from '@faker-js/faker';  // Import faker to generate word-based session ID
+
+// Store active sessions here
+const sessions = {};
+
+// Function to generate a word-based session ID using faker
+const generateWordCode = () => {
+    const word1 = faker.word.adjective();
+    const word2 = faker.word.adjective();
+    const word3 = faker.animal.type();
+    return `${word1}-${word2}-${word3}`; // e.g., clever-blue-elephant
+};
+
+// Check for collision and generate a new code if collision happens
+const generateUniqueSessionId = () => {
+    let sessionId;
+    do {
+        sessionId = generateWordCode();
+    } while (sessions[sessionId]);  // Regenerate if session ID is taken
+    return sessionId;
+};
 
 const Home = () => {
     const [isConnected, setIsConnected] = useState(false);
@@ -23,7 +43,9 @@ const Home = () => {
     const [websocketURL, setWebsocketURL] = useState("");
 
     useEffect(() => {
-        setSessionId(uuidv4());
+        const uniqueSessionId = generateUniqueSessionId(); // Generate unique session ID
+        setSessionId(uniqueSessionId);
+        sessions[uniqueSessionId] = true;  // Store the session in the sessions list
         setWebsocketURL(process.env.NEXT_PUBLIC_WS_URL);
     }, []);
 
@@ -47,6 +69,9 @@ const Home = () => {
             return () => {
                 webrtc.disconnect();
                 setIsConnected(false);
+                if (sessions[sessionId]) {
+                    delete sessions[sessionId];  // Clean up session on disconnect
+                }
             };
         }
     }, [websocketURL, sessionId]);
