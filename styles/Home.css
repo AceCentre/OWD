@@ -1,5 +1,9 @@
 /* Home.css */
 
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Balsamiq+Sans:wght@400&family=Dancing+Script:wght@400&family=Oswald:wght@700&display=swap');
+
+/* Base Styles */
 .display-container {
     height: 100vh;
     width: 100vw;
@@ -28,37 +32,67 @@
     width: 100%;
 }
 
-@media (max-width: 600px) {
-    .settings-panel {
-        width: 80%;
-    }
-}
-
-.text-display-row {
-    height: "100vh";
-}
-
-.text-display-col {
-    text-align: left;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
+/* Default Font Display */
+.text-display {
+    font-family: 'Arial', sans-serif; /* Default fallback font */
+    font-size: 72px; /* Increased default size */
+    color: #000000;
     white-space: pre-wrap;
     overflow: hidden;
 }
 
+/* Handwriting Font */
+.handwriting-font {
+    font-family: 'Dancing Script', cursive;
+}
 
-@keyframes scroll-up {
-    0% {
-        transform: translateY(100%);
+/* Bold Impactful Font */
+.bold-impact-font {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+}
+
+/* Cute Font */
+.cute-font {
+    font-family: 'Balsamiq Sans', cursive;
+}
+
+/* Slower Animation */
+.typing-animation {
+    animation: typing 6s steps(40, end); /* Slower animation duration */
+    animation-fill-mode: forwards; /* Ensures the animation only happens once */
+}
+
+@keyframes typing {
+    from {
+        width: 0;
     }
-    100% {
-        transform: translateY(-100%);
+    to {
+        width: 100%;
     }
 }
 
+/* Slide In Animation (Optional) */
+.slide-in-animation {
+    animation: slideIn 3s ease-out; /* Slower slide in */
+    animation-fill-mode: forwards;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Styles */
 @media (max-width: 600px) {
+    .settings-panel {
+        width: 80%;
+    }
+
     .qr-code {
         width: 100%;
     }
@@ -70,5 +104,15 @@
     .qr-code .qr-code-img {
         width: 192px !important;
         height: 192px !important;
+    }
+}
+
+/* Scroll Up Animation */
+@keyframes scroll-up {
+    0% {
+        transform: translateY(100%);
+    }
+    100% {
+        transform: translateY(-100%);
     }
 }
