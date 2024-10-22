@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/router";
 import WebRTCService from "../services/WebRTCService";
 import { AntComponents } from "../antComponents/AntComponents";
+import { QRCodeCanvas } from "qrcode.react";
+import { faker } from '@faker-js/faker';
 
 const SenderApp = () => {
-    const router = useRouter();
     const [isConnected, setIsConnected] = useState(false);
     const [message, setMessage] = useState("");
     const [sessionId, setSessionId] = useState("");
@@ -12,70 +12,45 @@ const SenderApp = () => {
 
     const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
 
-    useEffect(() => {
-        if (router.query.sessionId) {
-            setSessionId(router.query.sessionId);
-        }
-    }, [router.query]);
+    // Generate a unique session ID for the sender
+    const generateUniqueSessionId = () => {
+        const word1 = faker.word.adjective();
+        const word2 = faker.word.adjective();
+        const word3 = faker.animal.type();
+        return `${word1}-${word2}-${word3}`; // e.g., clever-blue-elephant
+    };
 
     useEffect(() => {
-        if (webrtcService) {
-            webrtcService.onChannelOpen(() => {
-                if (isConnected && message.length === 0) {
-                    webrtcService.sendMessage(
-                        JSON.stringify({
-                            type: "connected",
-                            content: "Connected",
-                        })
-                    );
-                }
-            });
-        }
-    }, [isConnected, webrtcService]);
-
-    useEffect(() => {
-        if (
-            isConnected &&
-            webrtcService &&
-            webrtcService.isDataChannelReady() &&
-            message.length > 0
-        ) {
-            webrtcService.sendMessage(
-                JSON.stringify({ type: "typing", content: "Writing..." })
-            );
-        }
-    }, [message]);
-
-    const handleSessionId = (e) => {
-        const newSessionId = e.target.value;
+        // Generate the session ID when the sender app loads
+        const newSessionId = generateUniqueSessionId();
         setSessionId(newSessionId);
 
-        router.replace(
-            {
-                pathname: "/sender",
-                query: { sessionId: newSessionId },
-            },
-            undefined,
-            { shallow: true }
-        );
-    };
+        // Automatically attempt to connect
+        const webrtc = new WebRTCService((receivedMessage) => {
+            console.log("Received:", receivedMessage);
+            const messageData = JSON.parse(receivedMessage);
 
-    const handleConnect = () => {
-        console.log("WebSocket URL:", websocketURL);
-        if (sessionId) {
-            const webrtc = new WebRTCService((receivedMessage) => {
-                console.log("Received:", receivedMessage);
-            }, true);
+            if (messageData.type === "connected") {
+                console.log("Display app connected");
+                setIsConnected(true); // When display app connects, update state
+            } else if (messageData.type === "message") {
+                console.log("Received message:", messageData.content);
+            }
+        }, true);
 
-            webrtc.onConnection(() => setIsConnected(true));
-            webrtc.connect(websocketURL, sessionId, {
-                transports: ['websocket'],
-            });
-            setWebrtcService(webrtc);
-        } else {
-            console.warn("Session ID is required to connect");
-        }
-    };
+        webrtc.connect(websocketURL, newSessionId, {
+            transports: ['websocket'],
+        });
+
+        setWebrtcService(webrtc);
+
+        return () => {
+            if (webrtcService) {
+                webrtcService.disconnect();
+                setIsConnected(false);
+            }
+        };
+    }, [websocketURL]);
 
     const sendMessage = () => {
         if (
@@ -95,15 +70,6 @@ const SenderApp = () => {
         }
     };
 
-    useEffect(() => {
-        return () => {
-            if (webrtcService) {
-                webrtcService.disconnect();
-                setIsConnected(false);
-            }
-        };
-    }, [webrtcService]);
-
     return (
         <AntComponents.Flex
             className="sender-container"
@@ -113,46 +79,37 @@ const SenderApp = () => {
             <AntComponents.Layout className="sender-layout">
                 <AntComponents.Header className="sender-header">
                     <AntComponents.Title level={2} className="sender-title">
-                        Sender App
+                        OWD Sender App (Demo)
                     </AntComponents.Title>
                 </AntComponents.Header>
 
                 <AntComponents.Content className="sender-input-container">
-                    <AntComponents.Input
-                        className="sender-input"
-                        disabled={isConnected}
-                        onChange={handleSessionId}
-                        placeholder="Enter Session ID"
-                        type="text"
-                        value={sessionId}
-                    />
-                    <AntComponents.Button
-                        className="sender-button"
-                        disabled={isConnected || !sessionId}
-                        onClick={handleConnect}
-                        type="primary"
-                    >
-                        {isConnected ? "Connected" : "Connect"}
-                    </AntComponents.Button>
-                </AntComponents.Content>
-
-                <AntComponents.Content className="sender-input-container">
-                    <AntComponents.Input
-                        className="sender-input"
-                        disabled={!isConnected}
-                        onChange={(e) => setMessage(e.target.value)}
-                        placeholder="Type a message"
-                        type="text"
-                        value={message}
-                    />
-                    <AntComponents.Button
-                        className="sender-button"
-                        disabled={!isConnected || !message.trim()}
-                        onClick={sendMessage}
-                        type="primary"
-                    >
-                        Send Message
-                    </AntComponents.Button>
+                    <AntComponents.Flex align="center" vertical="true" gap="middle">
+                        <AntComponents.Card className="qr-code">
+                            <AntComponents.Flex align="center" vertical="true">
+                                <QRCodeCanvas value={`${process.env.NEXT_PUBLIC_BASE_URL}/sender?sessionId=${sessionId}`} size={192} className="qr-code-img" />
+                                <AntComponents.Paragraph>
+                                    Session ID: {sessionId}
+                                </AntComponents.Paragraph>
+                            </AntComponents.Flex>
+                        </AntComponents.Card>
+                        <AntComponents.Input
+                            className="sender-input"
+                            disabled={!isConnected}
+                            onChange={(e) => setMessage(e.target.value)}
+                            placeholder="Type a message"
+                            type="text"
+                            value={message}
+                        />
+                        <AntComponents.Button
+                            className="sender-button"
+                            disabled={!isConnected || !message.trim()}
+                            onClick={sendMessage}
+                            type="primary"
+                        >
+                            Send Message
+                        </AntComponents.Button>
+                    </AntComponents.Flex>
                 </AntComponents.Content>
 
                 <AntComponents.Footer className="sender-footer">

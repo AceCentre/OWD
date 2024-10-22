@@ -38,8 +38,6 @@ class WebRTCService {
             ],
         });
 
-
-
         if (isSender) {
             this.channel = this.peerConnection.createDataChannel("messaging");
             this.channel.onopen = () => {
@@ -98,7 +96,6 @@ class WebRTCService {
         this.socket.on("signal", async (message) => {
             if (this.isSender) {
                 if (message.type === "answer") {
-                    console.log("Received answer:", message.answer);
                     await this.peerConnection.setRemoteDescription(
                         new RTCSessionDescription(message.answer)
                     );
@@ -107,7 +104,6 @@ class WebRTCService {
                 }
             } else {
                 if (message.type === "offer") {
-                    console.log("Received offer:", message.offer);
                     await this.peerConnection.setRemoteDescription(
                         new RTCSessionDescription(message.offer)
                     );
@@ -125,7 +121,6 @@ class WebRTCService {
                     await this.peerConnection.addIceCandidate(
                         new RTCIceCandidate(message.candidate)
                     );
-                    console.log("Added ICE candidate:", message.candidate);
                 } catch (e) {
                     console.error("Error adding received ICE candidate", e);
                 }
@@ -133,7 +128,6 @@ class WebRTCService {
         });
 
         this.socket.on("connect", () => {
-            console.log("WebSocket connected to:", websocketURL);
             if (this.isSender) this.createOffer();
         });
     }

@@ -1,22 +1,66 @@
 /* Home.css */
 
 /* Base Styles */
+/* Base Styles */
 .display-container {
     height: 100vh;
     width: 100vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.session-id-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.session-id-input {
+    width: 300px;
+    padding: 10px;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.connect-button {
+    width: 120px;
+    padding: 10px;
+    font-size: 1rem;
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.connect-button:disabled {
+    background-color: #c8c8c8;
+    border-color: #c8c8c8;
+    cursor: not-allowed;
+}
+
+.connect-button:hover:not(:disabled) {
+    background-color: #0056b3;
 }
 
 .settings-button-container {
     position: fixed;
-    bottom: 5px;
-    left: 5px;
+    bottom: 20px;
+    left: 20px;
 }
 
 .settings-button {
     font-size: 1rem;
     cursor: pointer;
     color: #5a5a5a;
-    opacity: 0.4;
+    opacity: 0.6;
     transition: opacity 0.2s;
 }
 
@@ -25,11 +69,21 @@
 }
 
 .session-id {
-    font-size: 0.5rem;
+    font-size: 0.8rem;
+    margin-top: 10px;
+    text-align: center;
     color: #5a5a5a;
-    opacity: 0.4;
-    transition: opacity 0.2s;
-    margin-top: 5px;
+    opacity: 0.8;
+}
+
+@media (max-width: 600px) {
+    .session-id-input {
+        width: 80%;
+    }
+
+    .connect-button {
+        width: 100%;
+    }
 }
 
 .settings-input-number,
