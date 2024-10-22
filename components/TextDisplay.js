@@ -2,20 +2,6 @@ import React from "react";
 import { TypeAnimation } from "react-type-animation";
 import { AntComponents } from "../antComponents/AntComponents";
 
-// Helper function to get the appropriate font class based on selected font family
-const getFontClass = (fontFamily) => {
-    switch (fontFamily) {
-        case "Dancing Script":
-            return "handwriting-font";
-        case "Oswald":
-            return "bold-impact-font";
-        case "Permanent Marker":
-            return "marker-font";  // For Permanent Marker font
-        default:
-            return "";  // Default to Arial, no extra class needed
-    }
-};
-
 const TextDisplay = ({
     animationType,
     backgroundColor,
@@ -35,6 +21,7 @@ const TextDisplay = ({
         fontSize,
         lineHeight: `${lineHeight}px`,
         maxHeight: `${containerHeight}px`,
+        fontFamily,
     };
 
     const getAnimationContent = () => {
@@ -67,7 +54,6 @@ const TextDisplay = ({
                         style={{
                             animation: `fade-in ${Math.max(speed, 2)}s ease-in-out`,
                             animationFillMode: 'forwards',
-                            opacity: 0,
                         }}
                     >
                         {text}
@@ -90,9 +76,7 @@ const TextDisplay = ({
     };
 
     return (
-        <AntComponents.Row
-            className={`text-display-row ${getFontClass(fontFamily)}`} // Dynamically apply the font class
-        >
+        <AntComponents.Row className="text-display-row">
             <AntComponents.Col
                 className="text-display-col"
                 span={24}
