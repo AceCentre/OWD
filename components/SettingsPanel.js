@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { AntComponents } from "../antComponents/AntComponents";
+import TextDisplay from "../components/TextDisplay";  // Import your TextDisplay for live preview
 
 const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
     const [animationType, setAnimationType] = useState(settings.animationType);
@@ -112,6 +113,21 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
                         <AntComponents.Option value="slide-in">Slide In</AntComponents.Option>
                     </AntComponents.Select>
                 </AntComponents.Item>
+
+                {/* Live Preview Section */}
+                <h4>Preview</h4>
+                <div style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px", marginTop: "10px" }}>
+                    <TextDisplay
+                        text="This is a live preview"
+                        animationType={animationType}
+                        backgroundColor={backgroundColor}
+                        color={color}
+                        fontSize={fontSize}
+                        fontFamily={fontFamily}
+                        lines={lines}
+                        speed={speed}
+                    />
+                </div>
             </AntComponents.Form>
         </AntComponents.Modal>
     );
