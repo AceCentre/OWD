@@ -25,8 +25,10 @@
 }
 
 .session-id {
-    font-size: 0.8rem;
-    color: #888;
+    font-size: 0.5rem;
+    color: #5a5a5a;
+    opacity: 0.4;
+    transition: opacity 0.2s;
     margin-top: 5px;
 }
 
