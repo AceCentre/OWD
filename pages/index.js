@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { AntComponents } from "../antComponents/AntComponents";
 import QRCodeDisplay from "../components/QRCodeDisplay";
 import SettingsPanel from "../components/SettingsPanel";
@@ -10,10 +10,11 @@ const Home = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [sessionId, setSessionId] = useState("");
     const [settings, setSettings] = useState({
-        animationType: "typing",
+        animationType: "typing",  // Animation options
         backgroundColor: "#FFFFFF",
         color: "#000000",
-        fontSize: 24,
+        fontSize: 72,  // Increased default font size to 72px
+        fontFamily: "default",  // Default font family
         lines: 3,
         speed: 25,
     });
@@ -27,7 +28,6 @@ const Home = () => {
     }, []);
 
     useEffect(() => {
-        console.log("WebSocket URL:", websocketURL);
         if (sessionId && websocketURL) {
             const webrtc = new WebRTCService((receivedMessage) => {
                 const messageData = JSON.parse(receivedMessage);
@@ -58,7 +58,13 @@ const Home = () => {
             style={{ ...settings, height: "100vh", width: "100vw" }}
         >
             {isConnected ? (
-                <TextDisplay text={text} {...settings} />
+                <TextDisplay
+                    key={text}  // Forces re-render to animate only on new message
+                    text={text}
+                    fontSize={settings.fontSize}
+                    fontFamily={settings.fontFamily}
+                    animationType={settings.animationType}
+                />
             ) : (
                 <QRCodeDisplay sessionId={sessionId} />
             )}
