@@ -7,9 +7,8 @@ const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-const allowedOrigin = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 const SESSION_LIFETIME = 7 * 24 * 60 * 60 * 1000;  // 7 days
-const sessions = {};  // Track sessions
+const sessions = {};  // Track sessions and connected clients
 
 app.prepare().then(() => {
     const server = createServer((req, res) => {
@@ -17,97 +16,62 @@ app.prepare().then(() => {
         handle(req, res, parsedUrl);
     });
 
-    // Configure Socket.io with CORS
     const io = new Server(server, {
         cors: {
-            origin: allowedOrigin,
+            origin: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
             methods: ["GET", "POST"],
             credentials: true,
             allowUpgrades: true,
         },
-        transports: ["websocket", "polling"],  // Ensure WebSocket and polling are enabled
+        transports: ["websocket", "polling"],
     });
-
-    // Helper: Check if a session is expired
-    function isSessionExpired(sessionId) {
-        const session = sessions[sessionId];
-        if (!session) return true;
-        const now = Date.now();
-        return now - session.createdAt > SESSION_LIFETIME;
-    }
-
-    // Helper: Create a new session
-    function createSession(sessionId) {
-        if (!sessions[sessionId]) {
-            sessions[sessionId] = {
-                createdAt: Date.now(),
-                clients: new Set()
-            };
-            console.log(`Session created: ${sessionId}`);
-        }
-    }
 
     // Clean up expired sessions periodically
     setInterval(() => {
+        const now = Date.now();
         for (const sessionId in sessions) {
-            if (isSessionExpired(sessionId)) {
-                delete sessions[sessionId];
-                console.log(`Session expired and deleted: ${sessionId}`);
+            if (now - sessions[sessionId].createdAt > SESSION_LIFETIME) {
+                delete sessions[sessionId];  // Expire session if it's too old
+                console.log(`Session ${sessionId} expired.`);
             }
         }
-    }, 60 * 60 * 1000);  // Check every hour
+    }, 60 * 60 * 1000);  // Run every hour
 
-    // Handle WebSocket connection
     io.on("connection", (socket) => {
         console.log(`Client connected: ${socket.id}`);
 
-        // Join session handler
         socket.on("joinSession", (sessionId) => {
-            // Create session if it doesn't exist
-            createSession(sessionId);
-
-            // Check if session exists and hasn't expired
-            if (isSessionExpired(sessionId)) {
-                socket.emit("sessionError", "Session expired or nonexistent.");
-                return;
+            // Add client to session or create new session
+            if (!sessions[sessionId]) {
+                sessions[sessionId] = {
+                    clients: new Set(),
+                    createdAt: Date.now(),
+                };
+                console.log(`Session created: ${sessionId}`);
             }
 
-            // Add client to session
-            socket.join(sessionId);
             sessions[sessionId].clients.add(socket.id);
+            socket.join(sessionId);
             console.log(`Client ${socket.id} joined session: ${sessionId}`);
         });
 
-        // Signal handler
         socket.on("signal", (message) => {
             const { sessionId, data } = message;
-
-            // Check if session exists and hasn't expired
-            if (isSessionExpired(sessionId)) {
-                socket.emit("sessionError", "Session expired or nonexistent.");
-                return;
-            }
-
-            // Forward the signal to other clients in the session
-            socket.to(sessionId).emit("signal", data);
+            socket.to(sessionId).emit("signal", data);  // Broadcast signal to session
             console.log(`Signal forwarded to session ${sessionId}:`, data);
         });
 
-        // Disconnect handler
         socket.on("disconnect", () => {
-            console.log(`Client disconnected: ${socket.id}`);
-            // Remove the client from all sessions it was part of
             for (const sessionId in sessions) {
                 sessions[sessionId].clients.delete(socket.id);
                 if (sessions[sessionId].clients.size === 0) {
-                    delete sessions[sessionId];  // Clean up empty sessions
+                    delete sessions[sessionId];
                     console.log(`Session ${sessionId} cleaned up due to no clients.`);
                 }
             }
         });
     });
 
-    // Start the server
     const port = process.env.PORT || 3000;
     server.listen(port, (err) => {
         if (err) throw err;

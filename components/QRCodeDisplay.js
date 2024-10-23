@@ -6,12 +6,10 @@ const QRCodeDisplay = ({ sessionId, size = 128 }) => {
 
     return (
         <AntComponents.Card className="qr-code">
-            <AntComponents.Flex align="center" vertical="true">
-                <QRCodeCanvas value={displayURL} size={size} className="qr-code-img" /> {/* Set the size dynamically */}
-                <AntComponents.Paragraph>
-                    Session ID: {sessionId}
-                </AntComponents.Paragraph>
-            </AntComponents.Flex>
+            <QRCodeCanvas value={displayURL} size={size} className="qr-code-img" /> {/* Set the size dynamically */}
+            <AntComponents.Paragraph>
+                Session ID: {sessionId}
+            </AntComponents.Paragraph>
         </AntComponents.Card>
     );
 };
