@@ -18,12 +18,8 @@ body {
     border: 1px solid #f0f0f0;
 }
 
-.sender-layout,
-.sender-footer,
-.sender-header {
-    background-color: #ffffff;
+.sender-container .sender-title {
     text-align: center;
-    justify-content: center;
 }
 
 .sender-input-container {
@@ -43,12 +39,8 @@ body {
     width: 120px;
 }
 
-.sender-footer {
-    padding: 5px 0 0 0;
-}
-
-.sender-footer .sender-connect-state {
-    font-size: 14px;
+.sender-connect-state {
+    text-align: center;
 }
 
 @media (max-width: 600px) {
@@ -63,5 +55,18 @@ body {
 
     .sender-input-container {
         margin-top: 0;
+    }
+
+    .qr-code {
+        width: 100%;
+    }
+
+    .qr-code .qr-code-header {
+        font-size: 1.2rem;
+    }
+
+    .qr-code .qr-code-img {
+        width: 128px !important;
+        height: 128px !important;
     }
 }

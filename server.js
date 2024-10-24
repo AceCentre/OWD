@@ -7,74 +7,79 @@ const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-const SESSION_LIFETIME = 7 * 24 * 60 * 60 * 1000;  // 7 days
-const sessions = {};  // Track sessions and connected clients
-
 app.prepare().then(() => {
     const server = createServer((req, res) => {
         const parsedUrl = parse(req.url, true);
         handle(req, res, parsedUrl);
     });
 
+    // Create a new Socket.io server
     const io = new Server(server, {
         cors: {
             origin: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
             methods: ["GET", "POST"],
             credentials: true,
-            allowUpgrades: true,
         },
-        transports: ["websocket", "polling"],
+        transports: ["websocket"],
     });
 
-    // Clean up expired sessions periodically
-    setInterval(() => {
-        const now = Date.now();
-        for (const sessionId in sessions) {
-            if (now - sessions[sessionId].createdAt > SESSION_LIFETIME) {
-                delete sessions[sessionId];  // Expire session if it's too old
-                console.log(`Session ${sessionId} expired.`);
-            }
-        }
-    }, 60 * 60 * 1000);  // Run every hour
+    // Store sessions with connected clients
+    const sessions = {};
 
     io.on("connection", (socket) => {
         console.log(`Client connected: ${socket.id}`);
 
+        // When a client joins a session
         socket.on("joinSession", (sessionId) => {
-            // Add client to session or create new session
             if (!sessions[sessionId]) {
-                sessions[sessionId] = {
-                    clients: new Set(),
-                    createdAt: Date.now(),
-                };
-                console.log(`Session created: ${sessionId}`);
+                sessions[sessionId] = new Set();
             }
-
-            sessions[sessionId].clients.add(socket.id);
+            sessions[sessionId].add(socket.id);
             socket.join(sessionId);
-            console.log(`Client ${socket.id} joined session: ${sessionId}`);
+            console.log(`Client ${socket.id} joined session ${sessionId}`);
+
+            // Notify other clients in the session that a peer has joined
+            socket.to(sessionId).emit("peerJoined", { sessionId });
         });
 
+        // Handle signaling messages (offer, answer, and ICE candidates)
         socket.on("signal", (message) => {
             const { sessionId, data } = message;
-            socket.to(sessionId).emit("signal", data);  // Broadcast signal to session
-            console.log(`Signal forwarded to session ${sessionId}:`, data);
+
+            if (sessions[sessionId]) {
+                console.log(
+                    `Signal received from client ${socket.id} for session ${sessionId}:`,
+                    data
+                );
+
+                // Relay the signal to other clients in the session
+                socket.to(sessionId).emit("signal", data);
+
+                console.log(`Signal forwarded to session ${sessionId}`);
+            } else {
+                console.warn(`Session ${sessionId} does not exist`);
+            }
         });
 
+        // When a client disconnects
         socket.on("disconnect", () => {
+            console.log(`Client ${socket.id} disconnected`);
             for (const sessionId in sessions) {
-                sessions[sessionId].clients.delete(socket.id);
-                if (sessions[sessionId].clients.size === 0) {
+                // Remove the client from the session
+                sessions[sessionId].delete(socket.id);
+
+                // If no clients remain in the session, delete the session
+                if (sessions[sessionId].size === 0) {
                     delete sessions[sessionId];
-                    console.log(`Session ${sessionId} cleaned up due to no clients.`);
+                    console.log(`Session ${sessionId} deleted`);
                 }
             }
         });
     });
 
-    const port = process.env.PORT || 3000;
-    server.listen(port, (err) => {
+    // Start the server
+    server.listen(process.env.PORT || 3000, (err) => {
         if (err) throw err;
-        console.log(`> Ready on http://localhost:${port}`);
+        console.log(`> Ready on http://localhost:${process.env.PORT || 3000}`);
     });
 });

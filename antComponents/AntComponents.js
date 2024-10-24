@@ -5,6 +5,9 @@ export const AntComponents = {
         ssr: false,
     }),
     Card: dynamic(() => import("antd").then((mod) => mod.Card), { ssr: false }),
+    Checkbox: dynamic(() => import("antd").then((mod) => mod.Checkbox), {
+        ssr: false,
+    }),
     Col: dynamic(() => import("antd").then((mod) => mod.Col), { ssr: false }),
     Content: dynamic(() => import("antd").then((mod) => mod.Layout.Content), {
         ssr: false,
