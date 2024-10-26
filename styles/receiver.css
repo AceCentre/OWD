@@ -1,0 +1,131 @@
+/* receiver css */
+
+/* index */
+.receiver-container {
+    width: 100vw;
+    height: 100vh;
+    padding: 20px;
+}
+
+/* SessionInput */
+.session-id-container {
+    width: 500px;
+    padding: 30px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.session-id-input,
+.session-connect-button {
+    width: 100%;
+    padding: 5px;
+    font-size: 1rem;
+    text-align: center;
+    border: 1px solid #ccc;
+}
+
+/* SettingButton */
+.settings-button-container {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+}
+
+.settings-button {
+    font-size: 1rem;
+    cursor: pointer;
+    color: #5a5a5a;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.settings-button:hover {
+    opacity: 1;
+}
+
+.settings-session-id {
+    font-size: 0.8rem;
+    margin-top: 10px;
+    text-align: center;
+    color: #5a5a5a;
+    opacity: 0.8;
+}
+
+/* SettingsPanel */
+.settings-item {
+    padding: 4px;
+    margin: 0;
+}
+
+.settings-input-number,
+.settings-select {
+    width: 100%;
+}
+
+.settings-preview {
+    margin-top: 10px;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+/* TextDisplay */
+.animation-scroll-controller {
+    overflow: hidden;
+}
+
+/* animation */
+.animation-scroll,
+.animation-fade,
+.animation-slide {
+    animation-fill-mode: forwards;
+}
+
+.animation-scroll {
+    animation-name: scroll-up;
+    animation-timing-function: linear;
+}
+
+.animation-fade {
+    animation-name: fade-in;
+    animation-timing-function: ease-in-out;
+}
+
+.animation-slide {
+    animation-name: slide-in;
+    animation-timing-function: ease-in-out;
+}
+
+@keyframes scroll-up {
+    0% {
+        transform: translateY(100%);
+    }
+    100% {
+        transform: translateY(-100%);
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* responsive css */
+@media (max-width: 767px) {
+    .session-id-container {
+        width: 80%;
+    }
+}

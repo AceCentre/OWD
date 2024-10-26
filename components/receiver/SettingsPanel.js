@@ -1,15 +1,19 @@
-import React, { useState } from "react";
-import { AntComponents } from "../antComponents/AntComponents";
-import TextDisplay from "../components/TextDisplay";  // Import your TextDisplay for live preview
+import { useState } from "react";
+import { AntComponents } from "../../antComponents/AntComponents";
+import TextDisplay from "./TextDisplay";
 
 const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
     const [animationType, setAnimationType] = useState(settings.animationType);
-    const [backgroundColor, setBackgroundColor] = useState(settings.backgroundColor);
+    const [backgroundColor, setBackgroundColor] = useState(
+        settings.backgroundColor
+    );
     const [color, setColor] = useState(settings.color);
     const [fontSize, setFontSize] = useState(settings.fontSize);
     const [lines, setLines] = useState(settings.lines);
     const [speed, setSpeed] = useState(settings.speed);
-    const [fontFamily, setFontFamily] = useState(settings.fontFamily || "Arial");
+    const [fontFamily, setFontFamily] = useState(
+        settings.fontFamily || "Arial"
+    );
 
     const handleUpdate = () => {
         onSettingsChange({
@@ -19,7 +23,7 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
             fontSize,
             lines,
             speed,
-            fontFamily,  // Pass the selected font family
+            fontFamily,
         });
         closeSettings();
     };
@@ -36,7 +40,7 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
             onCancel={closeSettings}
         >
             <AntComponents.Form layout="vertical">
-                <AntComponents.Item label="Font Size">
+                <AntComponents.Item label="Font Size" className="settings-item">
                     <AntComponents.InputNumber
                         className="settings-input-number"
                         max={100}
@@ -47,22 +51,31 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
                     />
                 </AntComponents.Item>
 
-                <AntComponents.Item label="Font Style">
+                <AntComponents.Item
+                    label="Font Style"
+                    className="settings-item"
+                >
                     <AntComponents.Select
                         className="settings-select"
                         onChange={setFontFamily}
                         value={fontFamily}
                     >
-                        <AntComponents.Option value="Arial">Arial (Default)</AntComponents.Option>
+                        <AntComponents.Option value="Arial">
+                            Arial (Default)
+                        </AntComponents.Option>
                         <AntComponents.Option value="Dancing Script">
                             Handwriting (Dancing Script)
                         </AntComponents.Option>
-                        <AntComponents.Option value="Oswald">Bold Impact (Oswald)</AntComponents.Option>
-                        <AntComponents.Option value="Permanent Marker">Marker (Permanent Marker)</AntComponents.Option>
+                        <AntComponents.Option value="Oswald">
+                            Bold Impact (Oswald)
+                        </AntComponents.Option>
+                        <AntComponents.Option value="Permanent Marker">
+                            Marker (Permanent Marker)
+                        </AntComponents.Option>
                     </AntComponents.Select>
                 </AntComponents.Item>
 
-                <AntComponents.Item label="Color">
+                <AntComponents.Item label="Color" className="settings-item">
                     <AntComponents.Input
                         onChange={(e) => setColor(e.target.value)}
                         type="color"
@@ -70,7 +83,10 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
                     />
                 </AntComponents.Item>
 
-                <AntComponents.Item label="Background Color">
+                <AntComponents.Item
+                    label="Background Color"
+                    className="settings-item"
+                >
                     <AntComponents.Input
                         onChange={(e) => setBackgroundColor(e.target.value)}
                         type="color"
@@ -78,7 +94,7 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
                     />
                 </AntComponents.Item>
 
-                <AntComponents.Item label="Lines">
+                <AntComponents.Item label="Lines" className="settings-item">
                     <AntComponents.InputNumber
                         className="settings-input-number"
                         max={53}
@@ -89,7 +105,7 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
                     />
                 </AntComponents.Item>
 
-                <AntComponents.Item label="Speed">
+                <AntComponents.Item label="Speed" className="settings-item">
                     <AntComponents.InputNumber
                         className="settings-input-number"
                         max={50}
@@ -100,23 +116,38 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
                     />
                 </AntComponents.Item>
 
-                <AntComponents.Item label="Animation Type">
+                <AntComponents.Item
+                    label="Animation Type"
+                    className="settings-item"
+                >
                     <AntComponents.Select
                         className="settings-select"
                         onChange={setAnimationType}
                         value={animationType}
                     >
-                        <AntComponents.Option value="none">None</AntComponents.Option>
-                        <AntComponents.Option value="typing">Typing</AntComponents.Option>
-                        <AntComponents.Option value="scroll">Scrolling</AntComponents.Option>
-                        <AntComponents.Option value="fade-in">Fade In</AntComponents.Option>
-                        <AntComponents.Option value="slide-in">Slide In</AntComponents.Option>
+                        <AntComponents.Option value="none">
+                            None
+                        </AntComponents.Option>
+                        <AntComponents.Option value="typing">
+                            Typing
+                        </AntComponents.Option>
+                        <AntComponents.Option value="scroll">
+                            Scrolling
+                        </AntComponents.Option>
+                        <AntComponents.Option value="fade-in">
+                            Fade In
+                        </AntComponents.Option>
+                        <AntComponents.Option value="slide-in">
+                            Slide In
+                        </AntComponents.Option>
                     </AntComponents.Select>
                 </AntComponents.Item>
 
-                {/* Live Preview Section */}
                 <h4>Preview</h4>
-                <div style={{ padding: "10px", border: "1px solid #ccc", borderRadius: "4px", marginTop: "10px" }}>
+                <div
+                    className="settings-preview"
+                    style={{ height: fontSize * 1.4 * lines }}
+                >
                     <TextDisplay
                         text="This is a live preview"
                         animationType={animationType}

@@ -13,7 +13,6 @@ app.prepare().then(() => {
         handle(req, res, parsedUrl);
     });
 
-    // Create a new Socket.io server
     const io = new Server(server, {
         cors: {
             origin: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
@@ -23,61 +22,50 @@ app.prepare().then(() => {
         transports: ["websocket"],
     });
 
-    // Store sessions with connected clients
     const sessions = {};
 
     io.on("connection", (socket) => {
-        console.log(`Client connected: ${socket.id}`);
-
-        // When a client joins a session
         socket.on("joinSession", (sessionId) => {
             if (!sessions[sessionId]) {
                 sessions[sessionId] = new Set();
             }
+
             sessions[sessionId].add(socket.id);
             socket.join(sessionId);
-            console.log(`Client ${socket.id} joined session ${sessionId}`);
 
-            // Notify other clients in the session that a peer has joined
-            socket.to(sessionId).emit("peerJoined", { sessionId });
+            const peerId = socket.id;
+            socket.emit("peerId", { peerId });
+
+            socket.to(sessionId).emit("peerJoined", { peerId });
         });
 
-        // Handle signaling messages (offer, answer, and ICE candidates)
         socket.on("signal", (message) => {
-            const { sessionId, data } = message;
+            const { sessionId, peerId, data } = message;
 
             if (sessions[sessionId]) {
-                console.log(
-                    `Signal received from client ${socket.id} for session ${sessionId}:`,
-                    data
-                );
-
-                // Relay the signal to other clients in the session
-                socket.to(sessionId).emit("signal", data);
-
-                console.log(`Signal forwarded to session ${sessionId}`);
+                socket.to(peerId).emit("signal", { peerId: socket.id, data });
             } else {
                 console.warn(`Session ${sessionId} does not exist`);
             }
         });
 
-        // When a client disconnects
         socket.on("disconnect", () => {
-            console.log(`Client ${socket.id} disconnected`);
             for (const sessionId in sessions) {
-                // Remove the client from the session
-                sessions[sessionId].delete(socket.id);
+                if (sessions[sessionId].has(socket.id)) {
+                    sessions[sessionId].delete(socket.id);
 
-                // If no clients remain in the session, delete the session
-                if (sessions[sessionId].size === 0) {
-                    delete sessions[sessionId];
-                    console.log(`Session ${sessionId} deleted`);
+                    if (sessions[sessionId].size === 0) {
+                        delete sessions[sessionId];
+                    } else {
+                        socket
+                            .to(sessionId)
+                            .emit("peerLeft", { peerId: socket.id });
+                    }
                 }
             }
         });
     });
 
-    // Start the server
     server.listen(process.env.PORT || 3000, (err) => {
         if (err) throw err;
         console.log(`> Ready on http://localhost:${process.env.PORT || 3000}`);

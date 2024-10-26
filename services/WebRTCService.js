@@ -1,70 +1,66 @@
 import { io } from "socket.io-client";
+import { iceServers } from "../utils/iceServers";
 
 class WebRTCService {
     constructor(onMessageReceived, isSender = true) {
-        this.channel = null;
         this.isSender = isSender;
-        this.isChannelOpen = false;
+        this.peerConnections = {};
+        this.channels = {};
+        this.isChannelOpen = {};
+        this.channelOpenCallback = null;
         this.onMessageReceived = onMessageReceived;
-        this.peerConnection = new RTCPeerConnection({
-            iceServers: [
-                {
-                    urls: "stun:stun.l.google.com:19302",
-                },
-                {
-                    urls: "stun:stun.relay.metered.ca:80",
-                },
-                {
-                    urls: "turn:global.relay.metered.ca:80",
-                    username: "dc6707c0bdabae99498a0570",
-                    credential: "t0a8EBJnJrZjLTV/",
-                },
-                {
-                    urls: "turn:global.relay.metered.ca:80?transport=tcp",
-                    username: "dc6707c0bdabae99498a0570",
-                    credential: "t0a8EBJnJrZjLTV/",
-                },
-                {
-                    urls: "turn:global.relay.metered.ca:443",
-                    username: "dc6707c0bdabae99498a0570",
-                    credential: "t0a8EBJnJrZjLTV/",
-                },
-                {
-                    urls: "turns:global.relay.metered.ca:443?transport=tcp",
-                    username: "dc6707c0bdabae99498a0570",
-                    credential: "t0a8EBJnJrZjLTV/",
-                },
-            ],
-        });
-
-        this.initializeDataChannel();
-        this.setupPeerConnection();
     }
 
-    initializeDataChannel() {
+    initializePeerConnection(peerId) {
+        const peerConnection = new RTCPeerConnection({ iceServers });
+
+        peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                this.socket.emit("signal", {
+                    sessionId: this.sessionId,
+                    peerId,
+                    data: { type: "ice-candidate", candidate: event.candidate },
+                });
+            }
+        };
+
+        peerConnection.onconnectionstatechange = () => {
+            const state = peerConnection.connectionState;
+            if (state === "connected") {
+                console.log(`Peers connected with ${peerId} successfully`);
+            } else if (state === "disconnected" || state === "failed") {
+                console.error(
+                    `Connection failed or disconnected with ${peerId}`
+                );
+                this.cleanUpPeer(peerId);
+            }
+        };
+
+        return peerConnection;
+    }
+
+    initializeDataChannel(peerId, peerConnection) {
         if (this.isSender) {
-            console.log("Creating data channel as sender");
-            this.channel = this.peerConnection.createDataChannel("messaging");
-            this.setupChannelEvents(this.channel);
+            const channel = peerConnection.createDataChannel("messaging");
+            this.setupChannelEvents(peerId, channel);
+            this.channels[peerId] = channel;
         } else {
-            this.peerConnection.ondatachannel = (event) => {
-                console.log("Data channel received on the receiver");
-                this.channel = event.channel;
-                this.setupChannelEvents(this.channel);
+            peerConnection.ondatachannel = (event) => {
+                const channel = event.channel;
+                this.setupChannelEvents(peerId, channel);
+                this.channels[peerId] = channel;
             };
         }
     }
 
-    setupChannelEvents(channel) {
+    setupChannelEvents(peerId, channel) {
         channel.onopen = () => {
-            console.log("Data channel opened");
-            this.isChannelOpen = true;
-            if (this.channelOpenCallback) this.channelOpenCallback();
+            this.isChannelOpen[peerId] = true;
+            if (this.channelOpenCallback) this.channelOpenCallback(peerId);
         };
 
         channel.onclose = () => {
-            console.log("Data channel closed");
-            this.isChannelOpen = false;
+            this.isChannelOpen[peerId] = false;
         };
 
         channel.onerror = (error) => {
@@ -72,73 +68,55 @@ class WebRTCService {
         };
 
         channel.onmessage = (event) => {
-            console.log("Data channel message received:", event.data);
-            this.onMessageReceived(event.data);
+            this.onMessageReceived(event.data, peerId);
         };
-    }
 
-    setupPeerConnection() {
-        this.peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-                console.log("ICE candidate gathered:", event.candidate);
-                this.socket.emit("signal", {
-                    sessionId: this.sessionId,
-                    data: { type: "ice-candidate", candidate: event.candidate },
-                });
-            } else {
-                console.log("All ICE candidates have been sent");
+        if (channel.readyState === "open") {
+            this.isChannelOpen[peerId] = true;
+            if (this.channelOpenCallback) {
+                this.channelOpenCallback(peerId);
             }
-        };
-
-        this.peerConnection.onconnectionstatechange = () => {
-            console.log(
-                "Connection state changed:",
-                this.peerConnection.connectionState
-            );
-            if (this.peerConnection.connectionState === "connected") {
-                console.log("Peers connected successfully");
-            } else if (
-                this.peerConnection.connectionState === "disconnected" ||
-                this.peerConnection.connectionState === "failed"
-            ) {
-                console.error("Connection failed or disconnected");
-            }
-        };
-    }
-
-    async createOffer() {
-        try {
-            const offer = await this.peerConnection.createOffer();
-            await this.peerConnection.setLocalDescription(offer);
-            console.log("Created and set local offer SDP:", offer.sdp);
-            this.socket.emit("signal", {
-                sessionId: this.sessionId,
-                data: { type: "offer", offer },
-            });
-        } catch (error) {
-            console.error("Error creating or sending offer", error);
         }
     }
 
-    async createAnswer() {
+    async createOffer(peerId) {
+        const peerConnection = this.peerConnections[peerId];
         try {
-            const answer = await this.peerConnection.createAnswer();
-            await this.peerConnection.setLocalDescription(answer);
-            console.log("Created and set local answer SDP:", answer.sdp);
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
             this.socket.emit("signal", {
                 sessionId: this.sessionId,
+                peerId,
+                data: { type: "offer", offer },
+            });
+        } catch (error) {
+            console.error(
+                `Error creating or sending offer for ${peerId}`,
+                error
+            );
+        }
+    }
+
+    async createAnswer(peerId) {
+        const peerConnection = this.peerConnections[peerId];
+        try {
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            this.socket.emit("signal", {
+                sessionId: this.sessionId,
+                peerId,
                 data: { type: "answer", answer },
             });
         } catch (error) {
-            console.error("Error creating or sending answer", error);
+            console.error(
+                `Error creating or sending answer for ${peerId}`,
+                error
+            );
         }
     }
 
     connect(websocketURL, sessionId) {
         this.sessionId = sessionId;
-        console.log(
-            `Connecting to WebSocket server at ${websocketURL} with session ID: ${sessionId}`
-        );
 
         this.socket = io(websocketURL, {
             transports: ["websocket"],
@@ -146,66 +124,63 @@ class WebRTCService {
         });
 
         this.socket.emit("joinSession", this.sessionId);
-        console.log(`Joining session with ID: ${this.sessionId}`);
 
-        this.socket.on("connect", () => {
-            console.log("WebSocket is connected");
-            if (this.isSender) {
-                console.log("Sender detected. Creating offer...");
-                this.createOffer();
-            }
-        });
-
-        this.socket.on("disconnect", () => {
-            console.log("WebSocket disconnected");
+        this.socket.on("peerId", (data) => {
+            this.peerId = data.peerId;
         });
 
         this.socket.on("signal", async (message) => {
-            console.log("Received signal:", message);
-            await this.handleSignalMessage(message);
+            const { peerId } = message;
+            await this.handleSignalMessage(peerId, message.data);
         });
 
-        this.socket.on("peerJoined", async () => {
-            console.log("Peer joined session:", this.sessionId);
+        this.socket.on("peerJoined", async (data) => {
+            const peerId = data.peerId;
+
             if (this.isSender) {
-                console.log("Creating offer after peer joined...");
-                await this.createOffer();
+                const peerConnection = this.initializePeerConnection(peerId);
+                this.peerConnections[peerId] = peerConnection;
+                this.initializeDataChannel(peerId, peerConnection);
+                await this.createOffer(peerId);
+            } else {
+                if (!this.peerConnections[peerId]) {
+                    const peerConnection =
+                        this.initializePeerConnection(peerId);
+                    this.peerConnections[peerId] = peerConnection;
+                }
             }
         });
 
-        setTimeout(() => {
-            if (!this.isChannelOpen) {
-                console.warn("Data channel did not open within 10 seconds");
-            }
-        }, 10000);
+        this.socket.on("peerLeft", (data) => {
+            this.cleanUpPeer(data.peerId);
+        });
     }
 
-    async handleSignalMessage(message) {
-        
-        console.log(this.isSender ? "Sender" : "Receiver", message)
+    async handleSignalMessage(peerId, message) {
+        let peerConnection = this.peerConnections[peerId];
+
+        if (!peerConnection) {
+            peerConnection = this.initializePeerConnection(peerId);
+            this.peerConnections[peerId] = peerConnection;
+
+            if (!this.isSender && message.type === "offer") {
+                this.initializeDataChannel(peerId, peerConnection);
+            }
+        }
+
         if (message.type === "answer" && this.isSender) {
-            await this.peerConnection.setRemoteDescription(
+            await peerConnection.setRemoteDescription(
                 new RTCSessionDescription(message.answer)
             );
-            console.log(
-                "Remote answer set successfully with SDP:",
-                message.answer.sdp
-            );
         } else if (message.type === "offer" && !this.isSender) {
-            console.log("Received offer SDP:", message.offer.sdp);
-            await this.peerConnection.setRemoteDescription(
+            await peerConnection.setRemoteDescription(
                 new RTCSessionDescription(message.offer)
             );
-            console.log("Creating and sending answer...");
-            await this.createAnswer();
+            await this.createAnswer(peerId);
         } else if (message.type === "ice-candidate" && message.candidate) {
             try {
-                await this.peerConnection.addIceCandidate(
+                await peerConnection.addIceCandidate(
                     new RTCIceCandidate(message.candidate)
-                );
-                console.log(
-                    "ICE candidate added successfully:",
-                    message.candidate
                 );
             } catch (e) {
                 console.error("Error adding received ICE candidate", e);
@@ -215,34 +190,44 @@ class WebRTCService {
 
     onChannelOpen(callback) {
         this.channelOpenCallback = callback;
-        if (this.isChannelOpen && this.channelOpenCallback) {
-            this.channelOpenCallback();
-        }
     }
 
     async sendMessage(message) {
-        if (this.channel && this.channel.readyState === "open") {
-            this.channel.send(message);
-            console.log("Message sent:", message);
-        } else {
-            console.warn("Data channel is not open. Message not sent.");
-        }
+        Object.keys(this.channels).forEach((peerId) => {
+            const channel = this.channels[peerId];
+            if (channel && channel.readyState === "open") {
+                channel.send(message);
+            } else {
+                console.warn(
+                    `Data channel is not open for ${peerId}. Message not sent.`
+                );
+            }
+        });
     }
 
     disconnect() {
-        if (this.channel) {
-            console.log("Closing data channel");
-            this.channel.close();
+        Object.keys(this.channels).forEach((peerId) => {
+            const channel = this.channels[peerId];
+            if (channel) channel.close();
+        });
+
+        Object.keys(this.peerConnections).forEach((peerId) => {
+            const peerConnection = this.peerConnections[peerId];
+            if (peerConnection) peerConnection.close();
+        });
+
+        if (this.socket) this.socket.disconnect();
+    }
+
+    cleanUpPeer(peerId) {
+        if (this.peerConnections[peerId]) {
+            this.peerConnections[peerId].close();
+            delete this.peerConnections[peerId];
         }
-        if (this.peerConnection) {
-            console.log("Closing peer connection");
-            this.peerConnection.close();
+        if (this.channels[peerId]) {
+            this.channels[peerId].close();
+            delete this.channels[peerId];
         }
-        if (this.socket) {
-            console.log("Disconnecting from WebSocket");
-            this.socket.disconnect();
-        }
-        console.log("Disconnected from WebRTC service");
     }
 }
 

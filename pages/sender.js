@@ -1,36 +1,50 @@
 import React, { useState, useEffect } from "react";
-import WebRTCService from "../services/WebRTCService";
-import { AntComponents } from "../antComponents/AntComponents";
-import QRCodeDisplay from "../components/QRCodeDisplay";
 import { faker } from "@faker-js/faker";
+import { AntComponents } from "../antComponents/AntComponents";
+import QRCodeDisplay from "../components/sender/QRCodeDisplay";
+import SenderText from "../components/sender/SenderText";
+import WebRTCService from "../services/WebRTCService";
+
+const generateWordCode = () => {
+    const word1 = faker.word.adjective();
+    const word2 = faker.word.adjective();
+    const word3 = faker.animal.type();
+    return `${word1}-${word2}-${word3}`;
+};
 
 const SenderApp = () => {
     const [isConnected, setIsConnected] = useState(false);
-    const [message, setMessage] = useState("");
     const [sessionId, setSessionId] = useState("");
     const [webrtcService, setWebrtcService] = useState(null);
-    const [liveTyping, setLiveTyping] = useState(false);
+    const [message, setMessage] = useState("");
+    const [isTyping, setIsTyping] = useState(false);
+    const [isLiveTyping, setIsLiveTyping] = useState(false);
 
     const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
 
     useEffect(() => {
-        const generatedSessionId = `${faker.word.adjective()}-${faker.word.adjective()}-${faker.animal.type()}`;
+        const generatedSessionId = generateWordCode();
         setSessionId(generatedSessionId);
     }, []);
 
     useEffect(() => {
         if (sessionId && websocketURL) {
-            const webrtc = new WebRTCService((receivedMessage) => {
-                console.log("Message received:", receivedMessage);
+            const webrtc = new WebRTCService((receivedMessage) => {    
+                const messageData = JSON.parse(receivedMessage);
+    
+                if (messageData.type === "channelConnected") {
+                    setIsConnected(true);
+                }
             }, true);
-
+    
             webrtc.onChannelOpen(() => {
                 setIsConnected(true);
+                webrtc.sendMessage(JSON.stringify({ type: "channelConnected" }));
             });
-
+    
             webrtc.connect(websocketURL, sessionId);
             setWebrtcService(webrtc);
-
+    
             return () => {
                 if (webrtc) {
                     webrtc.disconnect();
@@ -40,16 +54,37 @@ const SenderApp = () => {
         }
     }, [sessionId, websocketURL]);
 
+    useEffect(() => {
+        if (webrtcService) {
+            webrtcService.onChannelOpen(() => {
+                if (isConnected && message.length === 0) {
+                    webrtcService.sendMessage(
+                        JSON.stringify({
+                            type: "connected",
+                            content: "Connected",
+                            isLiveTyping: isLiveTyping,
+                        })
+                    );
+                }
+            });
+        }
+    }, [isConnected, webrtcService]);
+
     const sendMessage = () => {
-        if (webrtcService && isConnected && message.trim()) {
+        if (webrtcService && isConnected && message.length > 0) {
             webrtcService.sendMessage(
                 JSON.stringify({
                     type: "message",
                     content: message,
-                    liveTyping: liveTyping,
+                    isLiveTyping: isLiveTyping,
                 })
             );
             setMessage("");
+            setIsTyping(false);
+        } else {
+            console.warn(
+                "Not connected to a display session or message is empty"
+            );
         }
     };
 
@@ -57,11 +92,22 @@ const SenderApp = () => {
         const newMessage = e.target.value;
         setMessage(newMessage);
 
-        if (liveTyping && webrtcService && isConnected) {
+        if (isLiveTyping && webrtcService && isConnected) {
+            webrtcService.sendMessage(
+                JSON.stringify({
+                    type: "message",
+                    content: newMessage,
+                    isLiveTyping: isLiveTyping,
+                })
+            );
+            setIsTyping(false);
+        } else if (!isLiveTyping && newMessage.length > 0 && !isTyping) {
+            setIsTyping(true);
             webrtcService.sendMessage(
                 JSON.stringify({
                     type: "typing",
-                    content: newMessage,
+                    content: "Typing...",
+                    isLiveTyping: isLiveTyping,
                 })
             );
         }
@@ -79,47 +125,14 @@ const SenderApp = () => {
 
             <QRCodeDisplay sessionId={sessionId} />
 
-            <AntComponents.Content className="sender-input-container">
-                <AntComponents.Checkbox
-                    onChange={(e) => setLiveTyping(e.target.checked)}
-                    disabled={!isConnected}
-                >
-                    Enable Live Typing
-                </AntComponents.Checkbox>
-            </AntComponents.Content>
-
-            <AntComponents.Flex align="center" vertical="true" gap="middle">
-                <AntComponents.Input
-                    className="sender-input"
-                    disabled={!isConnected}
-                    onChange={handleTyping}
-                    placeholder="Type a message"
-                    type="text"
-                    value={message}
-                />
-                <AntComponents.Button
-                    className="sender-button"
-                    disabled={!isConnected || !message.trim()}
-                    onClick={sendMessage}
-                    type="primary"
-                >
-                    Send Message
-                </AntComponents.Button>
-            </AntComponents.Flex>
-
-            <AntComponents.Text
-                className="sender-connect-state"
-                type={isConnected ? "success" : "warning"}
-            >
-                {isConnected ? (
-                    <>
-                        Connected to display session: <br />
-                        {sessionId}
-                    </>
-                ) : (
-                    "Waiting to connect..."
-                )}
-            </AntComponents.Text>
+            <SenderText
+                isConnected={isConnected}
+                setIsLiveTyping={setIsLiveTyping}
+                isLiveTyping={isLiveTyping}
+                handleTyping={handleTyping}
+                message={message}
+                sendMessage={sendMessage}
+            />
         </AntComponents.Flex>
     );
 };

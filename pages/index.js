@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { AntComponents } from "../antComponents/AntComponents";
-import SettingsPanel from "../components/SettingsPanel";
-import TextDisplay from "../components/TextDisplay";
-import WebRTCService from "../services/WebRTCService";
 import { useRouter } from "next/router";
+import { AntComponents } from "../antComponents/AntComponents";
+import SessionInput from "../components/receiver/SessionInput";
+import SettingsButton from "../components/receiver/SettingsButton";
+import SettingsPanel from "../components/receiver/SettingsPanel";
+import TextDisplay from "../components/receiver/TextDisplay";
+import WebRTCService from "../services/WebRTCService";
 
 const Home = () => {
     const [isConnected, setIsConnected] = useState(false);
@@ -13,11 +15,12 @@ const Home = () => {
         animationType: "typing",
         backgroundColor: "#FFFFFF",
         color: "#000000",
-        fontSize: 72,
+        fontSize: 32,
         fontFamily: "Arial",
         lines: 3,
         speed: 25,
     });
+    const [live, setLive] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [text, setText] = useState("Waiting for messages...");
     const router = useRouter();
@@ -34,16 +37,23 @@ const Home = () => {
         if (sessionId && websocketURL) {
             const webrtc = new WebRTCService((receivedMessage) => {
                 const messageData = JSON.parse(receivedMessage);
-                setText(
-                    messageData.type === "typing"
-                        ? "Typing..."
-                        : messageData.content
-                );
+
+                setLive(messageData.isLiveTyping);
+
+                if (messageData.type === "connected") {
+                    setIsConnected(true);
+                } else if (messageData.type === "typing") {
+                    setText("Typing...");
+                } else if (messageData.type === "message") {
+                    setText(messageData.content);
+                }
             }, false);
 
             webrtc.onChannelOpen(() => {
-                console.log("Receiver connected");
                 setIsConnected(true);
+                webrtc.sendMessage(
+                    JSON.stringify({ type: "channelConnected" })
+                );
             });
 
             webrtc.connect(websocketURL, sessionId);
@@ -70,7 +80,7 @@ const Home = () => {
 
     return (
         <AntComponents.Flex
-            className="display-container"
+            className="receiver-container"
             direction="column"
             justify="center"
             align="center"
@@ -81,51 +91,25 @@ const Home = () => {
                     text={text}
                     fontSize={settings.fontSize}
                     fontFamily={settings.fontFamily}
-                    animationType={settings.animationType}
+                    animationType={live ? "none" : settings.animationType}
                     backgroundColor={settings.backgroundColor}
                     color={settings.color}
                     lines={settings.lines}
                     speed={settings.speed}
                 />
             ) : (
-                <AntComponents.Flex
-                    className="session-id-container"
-                    direction="column"
-                    justify="center"
-                    align="center"
-                    gap="small"
-                >
-                    <AntComponents.Input
-                        className="session-id-input"
-                        placeholder="Enter the 3-word session ID"
-                        value={sessionId}
-                        onChange={handleSessionIdChange}
-                    />
-                    <AntComponents.Button
-                        className="connect-button"
-                        disabled={!sessionId}
-                        onClick={handleConnect}
-                        type="primary"
-                    >
-                        Connect
-                    </AntComponents.Button>
-                </AntComponents.Flex>
+                <SessionInput
+                    sessionId={sessionId}
+                    handleSessionIdChange={handleSessionIdChange}
+                    handleConnect={handleConnect}
+                />
             )}
 
-            <div className="settings-button-container">
-                <div
-                    className="settings-button"
-                    onClick={() => setShowSettings(true)}
-                >
-                    ⚙️ Settings
-                </div>
-                <div
-                    className="session-id"
-                    style={{ color: isConnected ? "green" : "red" }}
-                >
-                    {isConnected ? "●" : "●"} Session ID: {sessionId}
-                </div>
-            </div>
+            <SettingsButton
+                isConnected={isConnected}
+                setShowSettings={setShowSettings}
+                sessionId={sessionId}
+            />
 
             {showSettings && (
                 <SettingsPanel

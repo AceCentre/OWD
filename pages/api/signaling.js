@@ -1,26 +1,23 @@
 import { Server } from "socket.io";
 
 let io;
+const sessions = {};
 
-export default function handler(req, res) {
-    if (!res.socket.server.io) {
-        io = new Server(res.socket.server, {
+export default function socketHandler(req, res) {
+    if (!io) {
+        const httpServer = res.socket.server;
+
+        io = new Server(httpServer, {
+            cors: {
+                origin:
+                    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+                methods: ["GET", "POST"],
+                credentials: true,
+            },
             transports: ["websocket"],
-            allowUpgrades: true,
         });
-        res.socket.server.io = io;
-        const sessions = {};
 
         io.on("connection", (socket) => {
-            socket.on("createSession", (sessionId) => {
-                if (!sessions[sessionId]) {
-                    sessions[sessionId] = new Set();
-                }
-                console.log(
-                    `Session ${sessionId} created by sender ${socket.id}`
-                );
-            });
-
             socket.on("joinSession", (sessionId) => {
                 if (!sessions[sessionId]) {
                     sessions[sessionId] = new Set();
@@ -28,20 +25,20 @@ export default function handler(req, res) {
 
                 sessions[sessionId].add(socket.id);
                 socket.join(sessionId);
-                console.log(`Client ${socket.id} joined session ${sessionId}`);
 
-                socket.to(sessionId).emit("peerJoined", { sessionId });
+                const peerId = socket.id;
+                socket.emit("peerId", { peerId });
+
+                socket.to(sessionId).emit("peerJoined", { peerId });
             });
 
             socket.on("signal", (message) => {
-                const { sessionId, data } = message;
+                const { sessionId, peerId, data } = message;
+
                 if (sessions[sessionId]) {
-                    console.log(
-                        `Signal received in session ${sessionId}:`,
-                        data
-                    );
-                    socket.to(sessionId).emit("signal", data);
-                    console.log(`Signal forwarded to session ${sessionId}`);
+                    socket
+                        .to(peerId)
+                        .emit("signal", { peerId: socket.id, data });
                 } else {
                     console.warn(`Session ${sessionId} does not exist`);
                 }
@@ -49,19 +46,25 @@ export default function handler(req, res) {
 
             socket.on("disconnect", () => {
                 for (const sessionId in sessions) {
-                    sessions[sessionId].delete(socket.id);
-                    if (sessions[sessionId].size === 0)
-                        delete sessions[sessionId];
+                    if (sessions[sessionId].has(socket.id)) {
+                        sessions[sessionId].delete(socket.id);
+
+                        if (sessions[sessionId].size === 0) {
+                            delete sessions[sessionId];
+                        } else {
+                            socket
+                                .to(sessionId)
+                                .emit("peerLeft", { peerId: socket.id });
+                        }
+                    }
                 }
-                console.log(`Client ${socket.id} disconnected`);
             });
         });
 
-        console.log("Socket.io server initialized");
+        console.log("Socket.IO server initialized");
     } else {
-        console.log("Socket.io server already running");
+        console.log("Socket.IO server already initialized");
     }
+
     res.end();
 }
-
-export const config = { api: { bodyParser: false } };
