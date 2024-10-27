@@ -1,6 +1,5 @@
-import React from "react";
 import { TypeAnimation } from "react-type-animation";
-import { AntComponents } from "../antComponents/AntComponents";
+import { AntComponents } from "../../antComponents/AntComponents";
 
 const TextDisplay = ({
     animationType,
@@ -28,11 +27,14 @@ const TextDisplay = ({
         switch (animationType) {
             case "scroll":
                 return (
-                    <div style={{ overflow: 'hidden', height: containerHeight }}>
+                    <div
+                        className="animation-scroll-container"
+                        style={{ height: containerHeight }}
+                    >
                         <div
+                            className="animation-scroll"
                             style={{
-                                animation: `scroll-up ${speed * 5}s linear`,
-                                animationFillMode: 'forwards',
+                                animationDuration: `${speed / 3}s`,
                             }}
                         >
                             {text}
@@ -44,16 +46,16 @@ const TextDisplay = ({
                     <TypeAnimation
                         cursor={false}
                         key={text}
-                        sequence={[text, speed]}
-                        speed={Math.max(speed, 50)}
+                        sequence={[text]}
+                        speed={2 * speed}
                     />
                 );
             case "fade-in":
                 return (
                     <div
+                        className="animation-fade"
                         style={{
-                            animation: `fade-in ${Math.max(speed, 2)}s ease-in-out`,
-                            animationFillMode: 'forwards',
+                            animationDuration: `${Math.max(speed, 2)}s`,
                         }}
                     >
                         {text}
@@ -62,26 +64,22 @@ const TextDisplay = ({
             case "slide-in":
                 return (
                     <div
+                        className="animation-slide"
                         style={{
-                            animation: `slide-in ${Math.max(speed, 2)}s ease-in-out`,
-                            animationFillMode: 'forwards',
+                            animationDuration: `${Math.max(speed, 2)}s`,
                         }}
                     >
                         {text}
                     </div>
                 );
             default:
-                return <div>{text}</div>; // No animation
+                return <div>{text}</div>;
         }
     };
 
     return (
-        <AntComponents.Row className="text-display-row">
-            <AntComponents.Col
-                className="text-display-col"
-                span={24}
-                style={containerStyles}
-            >
+        <AntComponents.Row>
+            <AntComponents.Col span={24} style={containerStyles}>
                 {getAnimationContent()}
             </AntComponents.Col>
         </AntComponents.Row>

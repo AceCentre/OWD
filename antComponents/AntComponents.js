@@ -5,6 +5,9 @@ export const AntComponents = {
         ssr: false,
     }),
     Card: dynamic(() => import("antd").then((mod) => mod.Card), { ssr: false }),
+    Checkbox: dynamic(() => import("antd").then((mod) => mod.Checkbox), {
+        ssr: false,
+    }),
     Col: dynamic(() => import("antd").then((mod) => mod.Col), { ssr: false }),
     Content: dynamic(() => import("antd").then((mod) => mod.Layout.Content), {
         ssr: false,
@@ -41,6 +44,12 @@ export const AntComponents = {
     ),
     Row: dynamic(() => import("antd").then((mod) => mod.Row), { ssr: false }),
     Select: dynamic(() => import("antd").then((mod) => mod.Select), {
+        ssr: false,
+    }),
+    Tabs: dynamic(() => import("antd").then((mod) => mod.Tabs), {
+        ssr: false,
+    }),
+    TabPane: dynamic(() => import("antd").then((mod) => mod.Tabs.TabPane), {
         ssr: false,
     }),
     Text: dynamic(() => import("antd").then((mod) => mod.Typography.Text), {

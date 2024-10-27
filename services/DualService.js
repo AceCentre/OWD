@@ -31,7 +31,7 @@ class DualService {
         this.bleService = new BLEService(onMessageReceived);
         this.isBLEActive = false;
         this.isSocketActive = false;
-        this.initConnections();
+        this.sessionId = null;
     }
 
     initConnections() {
@@ -40,6 +40,7 @@ class DualService {
 
         // Add the sessionId to the sessions object to track it
         sessions[sessionId] = true;
+        this.sessionId = sessionId;
 
         console.log(`Generated unique session ID: ${sessionId}`); // For debugging
 
@@ -76,15 +77,15 @@ class DualService {
         }
     }
 
-    cleanup(sessionId) {
+    cleanup() {
         // Disconnect WebRTC and BLE when no longer needed
         if (this.webrtcService) this.webrtcService.disconnect();
         if (this.isBLEActive) this.bleService.disconnect();
 
         // Remove the session from the sessions list when done
-        if (sessionId && sessions[sessionId]) {
-            delete sessions[sessionId];
-            console.log(`Session ID ${sessionId} cleaned up`);
+        if (this.sessionId && sessions[this.sessionId]) {
+            delete sessions[this.sessionId];
+            console.log(`Session ID ${this.sessionId} cleaned up`);
         }
     }
 }

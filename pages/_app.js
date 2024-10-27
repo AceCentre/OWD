@@ -1,6 +1,7 @@
 import "antd/dist/reset.css";
 import "../styles/globals.css";
-import "../styles/Home.css";
+import "../styles/receiver.css";
+import "../styles/sender.css";
 import App from "next/app";
 
 function MyApp({ Component, pageProps }) {
@@ -8,5 +9,3 @@ function MyApp({ Component, pageProps }) {
 }
 
 export default MyApp;
-
-

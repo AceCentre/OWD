@@ -1,0 +1,9 @@
+{
+    "animationType": "typing",
+    "backgroundColor": "#FFFFFF",
+    "color": "#000000",
+    "fontSize": 32,
+    "fontFamily": "Arial",
+    "lines": 3,
+    "speed": 25
+}

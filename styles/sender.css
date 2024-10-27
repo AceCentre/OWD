@@ -1,0 +1,74 @@
+/* sender css */
+
+/*sender */
+.sender-container {
+    width: 500px;
+    padding: 24px;
+    border-radius: 8px;
+    border: 1px solid #f0f0f0;
+}
+
+.sender-title {
+    text-align: center;
+    margin-bottom: 0;
+}
+
+/* SenderText */
+.sender-text-input {
+    flex: 1;
+    border-radius: 4px;
+}
+
+.sender-button-group {
+    width: 100%;
+}
+
+.sender-live-checkbox {
+    align-items: center;
+}
+
+.sender-text-button {
+    width: 120px;
+    border-radius: 4px;
+}
+
+/* ConnectNotification */
+.sender-connect-state {
+    text-align: center;
+}
+
+/* responsive */
+@media (max-width: 767px) {
+    .sender-container {
+        width: 100%;
+        padding: 12px;
+    }
+
+    .sender-title {
+        font-size: 1.5rem !important;
+    }
+
+    .sender-input-container {
+        margin-top: 0 !important;
+    }
+
+    .qr-code-container {
+        width: 100%;
+    }
+
+    .qr-code-img {
+        width: 128px !important;
+        height: 128px !important;
+    }
+}
+
+@media (max-height: 767px) {
+    .sender-title {
+        font-size: 1.5rem !important;
+    }
+
+    .qr-code-img {
+        width: 128px !important;
+        height: 128px !important;
+    }
+}

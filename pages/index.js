@@ -1,116 +1,109 @@
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import { AntComponents } from "../antComponents/AntComponents";
-import QRCodeDisplay from "../components/QRCodeDisplay";
-import SettingsPanel from "../components/SettingsPanel";
-import TextDisplay from "../components/TextDisplay";
+import SessionInput from "../components/receiver/SessionInput";
+import SettingsButton from "../components/receiver/SettingsButton";
+import SettingsPanel from "../components/receiver/SettingsPanel";
+import TextDisplay from "../components/receiver/TextDisplay";
+import messageTypes from "../utils/messageTypes.json";
+import initialTextSettings from "../utils/initialTextSettings.json";
 import WebRTCService from "../services/WebRTCService";
-import { faker } from '@faker-js/faker';  // Import faker to generate word-based session ID
-
-// Store active sessions here
-const sessions = {};
-
-// Function to generate a word-based session ID using faker
-const generateWordCode = () => {
-    const word1 = faker.word.adjective();
-    const word2 = faker.word.adjective();
-    const word3 = faker.animal.type();
-    return `${word1}-${word2}-${word3}`; // e.g., clever-blue-elephant
-};
-
-// Check for collision and generate a new code if collision happens
-const generateUniqueSessionId = () => {
-    let sessionId;
-    do {
-        sessionId = generateWordCode();
-    } while (sessions[sessionId]);  // Regenerate if session ID is taken
-    return sessionId;
-};
 
 const Home = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [sessionId, setSessionId] = useState("");
-    const [settings, setSettings] = useState({
-        animationType: "typing",  // Default animation
-        backgroundColor: "#FFFFFF",
-        color: "#000000",
-        fontSize: 72,  // Default font size
-        fontFamily: "Arial",  // Default font family
-        lines: 3,
-        speed: 25,
-    });
+    const [webrtcService, setWebrtcService] = useState(null);
+    const [settings, setSettings] = useState(initialTextSettings);
+    const [live, setLive] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [text, setText] = useState("Waiting for messages...");
-    const [websocketURL, setWebsocketURL] = useState("");
+    const router = useRouter();
+
+    const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
 
     useEffect(() => {
-        const uniqueSessionId = generateUniqueSessionId(); // Generate unique session ID
-        setSessionId(uniqueSessionId);
-        sessions[uniqueSessionId] = true;  // Store the session in the sessions list
-        setWebsocketURL(process.env.NEXT_PUBLIC_WS_URL);
-    }, []);
+        if (router.query.sessionId) {
+            setSessionId(router.query.sessionId);
+        }
+    }, [router]);
 
-    useEffect(() => {
+    const handleConnect = () => {
         if (sessionId && websocketURL) {
             const webrtc = new WebRTCService((receivedMessage) => {
                 const messageData = JSON.parse(receivedMessage);
-                if (messageData.type === "connected") {
+
+                setLive(messageData.isLiveTyping);
+
+                if (messageData.type === messageTypes.CONNECTED) {
                     setIsConnected(true);
-                } else if (messageData.type === "typing") {
+                } else if (messageData.type === messageTypes.TYPING) {
                     setText("Typing...");
-                } else if (messageData.type === "message") {
+                } else if (messageData.type === messageTypes.MESSAGE) {
                     setText(messageData.content);
                 }
             }, false);
 
-            webrtc.connect(websocketURL, sessionId, {
-                transports: ['websocket'],
+            webrtc.onChannelOpen(() => {
+                setIsConnected(true);
+                webrtc.sendMessage(
+                    JSON.stringify({ type: messageTypes.CHANNEL_CONNECTED })
+                );
             });
 
-            return () => {
-                webrtc.disconnect();
-                setIsConnected(false);
-                if (sessions[sessionId]) {
-                    delete sessions[sessionId];  // Clean up session on disconnect
-                }
-            };
+            webrtc.connect(websocketURL, sessionId);
+            setWebrtcService(webrtc);
+        } else {
+            console.warn(
+                "Session ID and WebSocket URL are required to connect."
+            );
         }
-    }, [websocketURL, sessionId]);
+    };
+
+    const handleSessionIdChange = (e) => {
+        setSessionId(e.target.value);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (webrtcService) {
+                webrtcService.disconnect();
+                setIsConnected(false);
+            }
+        };
+    }, [webrtcService]);
 
     return (
         <AntComponents.Flex
+            className="receiver-container"
+            direction="column"
             justify="center"
             align="center"
-            style={{ ...settings, height: "100vh", width: "100vw" }}
         >
             {isConnected ? (
                 <TextDisplay
-                    key={text}  // Re-render on new message to trigger animation
+                    key={text}
                     text={text}
                     fontSize={settings.fontSize}
                     fontFamily={settings.fontFamily}
-                    animationType={settings.animationType}
+                    animationType={live ? "none" : settings.animationType}
                     backgroundColor={settings.backgroundColor}
                     color={settings.color}
                     lines={settings.lines}
                     speed={settings.speed}
                 />
             ) : (
-                <QRCodeDisplay sessionId={sessionId} />
+                <SessionInput
+                    sessionId={sessionId}
+                    handleSessionIdChange={handleSessionIdChange}
+                    handleConnect={handleConnect}
+                />
             )}
 
-            <div className="settings-button-container">
-                <div
-                    className="settings-button"
-                    onClick={() => setShowSettings(true)}
-                >
-                    ⚙️Settings
-                </div>
-                {isConnected && (
-                    <div className="session-id">
-                        Session ID: {sessionId}
-                    </div>
-                )}
-            </div>
+            <SettingsButton
+                isConnected={isConnected}
+                setShowSettings={setShowSettings}
+                sessionId={sessionId}
+            />
 
             {showSettings && (
                 <SettingsPanel

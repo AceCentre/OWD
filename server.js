@@ -7,57 +7,67 @@ const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-const allowedOrigin = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-
 app.prepare().then(() => {
     const server = createServer((req, res) => {
         const parsedUrl = parse(req.url, true);
         handle(req, res, parsedUrl);
     });
 
-    // Configure Socket.io to allow CORS with the environment variable
     const io = new Server(server, {
         cors: {
             origin: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
             methods: ["GET", "POST"],
             credentials: true,
-            allowUpgrades: true,
         },
-        transports: ["websocket", "polling"],  // Ensure both websocket and polling are enabled
+        transports: ["websocket"],
     });
 
     const sessions = {};
 
     io.on("connection", (socket) => {
-
         socket.on("joinSession", (sessionId) => {
-
-            socket.join(sessionId);
-
             if (!sessions[sessionId]) {
                 sessions[sessionId] = new Set();
             }
+
             sessions[sessionId].add(socket.id);
+            socket.join(sessionId);
+
+            const peerId = socket.id;
+            socket.emit("peerId", { peerId });
+
+            socket.to(sessionId).emit("peerJoined", { peerId });
         });
 
         socket.on("signal", (message) => {
-            const { sessionId, data } = message;
-            console.log(`Signal received from client ${socket.id} for session ${sessionId}:`, data);
-            socket.to(sessionId).emit("signal", data);
-            console.log(`Signal forwarded to session ${sessionId}`);
+            const { sessionId, peerId, data } = message;
+
+            if (sessions[sessionId]) {
+                socket.to(peerId).emit("signal", { peerId: socket.id, data });
+            } else {
+                console.warn(`Session ${sessionId} does not exist`);
+            }
         });
 
         socket.on("disconnect", () => {
             for (const sessionId in sessions) {
-                sessions[sessionId].delete(socket.id);
-                if (sessions[sessionId].size === 0) delete sessions[sessionId];
+                if (sessions[sessionId].has(socket.id)) {
+                    sessions[sessionId].delete(socket.id);
+
+                    if (sessions[sessionId].size === 0) {
+                        delete sessions[sessionId];
+                    } else {
+                        socket
+                            .to(sessionId)
+                            .emit("peerLeft", { peerId: socket.id });
+                    }
+                }
             }
         });
     });
 
-    const port = process.env.PORT || 3000;
-    server.listen(port, (err) => {
+    server.listen(process.env.PORT || 3000, (err) => {
         if (err) throw err;
-        console.log(`> Ready on http://localhost:${port}`);
+        console.log(`> Ready on http://localhost:${process.env.PORT || 3000}`);
     });
 });

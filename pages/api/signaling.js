@@ -1,53 +1,70 @@
 import { Server } from "socket.io";
 
 let io;
+const sessions = {};
 
-export default function handler(req, res) {
+export default function socketHandler(req, res) {
     if (!io) {
-        if (!res.socket.server.io) {
-            io = new Server(res.socket.server, {
-                transports: ['websocket'],  // Force WebSocket transport
-                allowUpgrades: true,        // Allow upgrades from HTTP polling (if needed)
+        const httpServer = res.socket.server;
+
+        io = new Server(httpServer, {
+            cors: {
+                origin:
+                    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+                methods: ["GET", "POST"],
+                credentials: true,
+            },
+            transports: ["websocket"],
+        });
+
+        io.on("connection", (socket) => {
+            socket.on("joinSession", (sessionId) => {
+                if (!sessions[sessionId]) {
+                    sessions[sessionId] = new Set();
+                }
+
+                sessions[sessionId].add(socket.id);
+                socket.join(sessionId);
+
+                const peerId = socket.id;
+                socket.emit("peerId", { peerId });
+
+                socket.to(sessionId).emit("peerJoined", { peerId });
             });
-            res.socket.server.io = io;
-            const sessions = {};
 
-            io.on("connection", (socket) => {
-                socket.on("joinSession", (sessionId) => {
-                    socket.join(sessionId);
+            socket.on("signal", (message) => {
+                const { sessionId, peerId, data } = message;
 
-                    if (!sessions[sessionId]) {
-                        sessions[sessionId] = new Set();
-                    }
+                if (sessions[sessionId]) {
+                    socket
+                        .to(peerId)
+                        .emit("signal", { peerId: socket.id, data });
+                } else {
+                    console.warn(`Session ${sessionId} does not exist`);
+                }
+            });
 
-                    sessions[sessionId].add(socket.id);
-                    console.log(`Client ${socket.id} joined session ${sessionId}`);
-                });
-
-                socket.on("signal", (message) => {
-                    const { sessionId, data } = message;
-                    console.log(`Signal received in session ${sessionId}:`, data);
-                    socket.to(sessionId).emit("signal", data);
-                    console.log(`Signal forwarded to session ${sessionId}`);
-                });
-
-                socket.on("disconnect", () => {
-                    for (const sessionId in sessions) {
+            socket.on("disconnect", () => {
+                for (const sessionId in sessions) {
+                    if (sessions[sessionId].has(socket.id)) {
                         sessions[sessionId].delete(socket.id);
 
-                        if (sessions[sessionId].size === 0)
+                        if (sessions[sessionId].size === 0) {
                             delete sessions[sessionId];
+                        } else {
+                            socket
+                                .to(sessionId)
+                                .emit("peerLeft", { peerId: socket.id });
+                        }
                     }
-                });
+                }
             });
+        });
 
-            res.socket.server.io = io;
-            console.log("Socket.io server initialized");
-        } else {
-            console.log("Socket.io server already running");
-        }
+        console.log("Socket.IO server initialized");
+    } else {
+        console.log("Socket.IO server already initialized");
     }
+
     res.end();
 }
-
-export const config = { api: { bodyParser: false } };
