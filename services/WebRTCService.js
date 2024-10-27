@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
-import { iceServers } from "../utils/iceServers";
+import iceServers from "../utils/iceServers";
 
 class WebRTCService {
     constructor(onMessageReceived, isSender = true) {

@@ -3,6 +3,7 @@ import { faker } from "@faker-js/faker";
 import { AntComponents } from "../antComponents/AntComponents";
 import QRCodeDisplay from "../components/sender/QRCodeDisplay";
 import SenderText from "../components/sender/SenderText";
+import messageTypes from "../utils/messageTypes.json";
 import WebRTCService from "../services/WebRTCService";
 
 const generateWordCode = () => {
@@ -29,22 +30,24 @@ const SenderApp = () => {
 
     useEffect(() => {
         if (sessionId && websocketURL) {
-            const webrtc = new WebRTCService((receivedMessage) => {    
+            const webrtc = new WebRTCService((receivedMessage) => {
                 const messageData = JSON.parse(receivedMessage);
-    
-                if (messageData.type === "channelConnected") {
+
+                if (messageData.type === messageTypes.CHANNEL_CONNECTED) {
                     setIsConnected(true);
                 }
             }, true);
-    
+
             webrtc.onChannelOpen(() => {
                 setIsConnected(true);
-                webrtc.sendMessage(JSON.stringify({ type: "channelConnected" }));
+                webrtc.sendMessage(
+                    JSON.stringify({ type: messageTypes.CHANNEL_CONNECTED })
+                );
             });
-    
+
             webrtc.connect(websocketURL, sessionId);
             setWebrtcService(webrtc);
-    
+
             return () => {
                 if (webrtc) {
                     webrtc.disconnect();
@@ -60,8 +63,7 @@ const SenderApp = () => {
                 if (isConnected && message.length === 0) {
                     webrtcService.sendMessage(
                         JSON.stringify({
-                            type: "connected",
-                            content: "Connected",
+                            type: messageTypes.CONNECTED,
                             isLiveTyping: isLiveTyping,
                         })
                     );
@@ -74,7 +76,7 @@ const SenderApp = () => {
         if (webrtcService && isConnected && message.length > 0) {
             webrtcService.sendMessage(
                 JSON.stringify({
-                    type: "message",
+                    type: messageTypes.MESSAGE,
                     content: message,
                     isLiveTyping: isLiveTyping,
                 })
@@ -95,7 +97,7 @@ const SenderApp = () => {
         if (isLiveTyping && webrtcService && isConnected) {
             webrtcService.sendMessage(
                 JSON.stringify({
-                    type: "message",
+                    type: messageTypes.MESSAGE,
                     content: newMessage,
                     isLiveTyping: isLiveTyping,
                 })
@@ -105,7 +107,7 @@ const SenderApp = () => {
             setIsTyping(true);
             webrtcService.sendMessage(
                 JSON.stringify({
-                    type: "typing",
+                    type: messageTypes.TYPING,
                     content: "Typing...",
                     isLiveTyping: isLiveTyping,
                 })

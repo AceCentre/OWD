@@ -46,6 +46,12 @@ export const AntComponents = {
     Select: dynamic(() => import("antd").then((mod) => mod.Select), {
         ssr: false,
     }),
+    Tabs: dynamic(() => import("antd").then((mod) => mod.Tabs), {
+        ssr: false,
+    }),
+    TabPane: dynamic(() => import("antd").then((mod) => mod.Tabs.TabPane), {
+        ssr: false,
+    }),
     Text: dynamic(() => import("antd").then((mod) => mod.Typography.Text), {
         ssr: false,
     }),

@@ -5,21 +5,15 @@ import SessionInput from "../components/receiver/SessionInput";
 import SettingsButton from "../components/receiver/SettingsButton";
 import SettingsPanel from "../components/receiver/SettingsPanel";
 import TextDisplay from "../components/receiver/TextDisplay";
+import messageTypes from "../utils/messageTypes.json";
+import initialTextSettings from "../utils/initialTextSettings.json";
 import WebRTCService from "../services/WebRTCService";
 
 const Home = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [sessionId, setSessionId] = useState("");
     const [webrtcService, setWebrtcService] = useState(null);
-    const [settings, setSettings] = useState({
-        animationType: "typing",
-        backgroundColor: "#FFFFFF",
-        color: "#000000",
-        fontSize: 32,
-        fontFamily: "Arial",
-        lines: 3,
-        speed: 25,
-    });
+    const [settings, setSettings] = useState(initialTextSettings);
     const [live, setLive] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [text, setText] = useState("Waiting for messages...");
@@ -40,11 +34,11 @@ const Home = () => {
 
                 setLive(messageData.isLiveTyping);
 
-                if (messageData.type === "connected") {
+                if (messageData.type === messageTypes.CONNECTED) {
                     setIsConnected(true);
-                } else if (messageData.type === "typing") {
+                } else if (messageData.type === messageTypes.TYPING) {
                     setText("Typing...");
-                } else if (messageData.type === "message") {
+                } else if (messageData.type === messageTypes.MESSAGE) {
                     setText(messageData.content);
                 }
             }, false);
@@ -52,7 +46,7 @@ const Home = () => {
             webrtc.onChannelOpen(() => {
                 setIsConnected(true);
                 webrtc.sendMessage(
-                    JSON.stringify({ type: "channelConnected" })
+                    JSON.stringify({ type: messageTypes.CHANNEL_CONNECTED })
                 );
             });
 
