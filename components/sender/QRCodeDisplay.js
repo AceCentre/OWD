@@ -2,7 +2,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import { AntComponents } from "../../antComponents/AntComponents";
 
 const QRCodeDisplay = ({ sessionId }) => {
-    const displayURL = `${process.env.NEXT_PUBLIC_BASE_URL}/sender?sessionId=${sessionId}`;
+    const displayURL = `${process.env.NEXT_PUBLIC_BASE_URL}/?sessionId=${sessionId}`;
 
     return (
         <AntComponents.Card className="qr-code-container">
