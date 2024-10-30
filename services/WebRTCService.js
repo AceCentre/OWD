@@ -7,6 +7,9 @@ class WebRTCService {
         this.peerConnections = {};
         this.channels = {};
         this.isChannelOpen = {};
+        this.retryCount = {}
+        this.maxRetries = 5;
+        this.retryInterval = 3000;
         this.channelOpenCallback = null;
         this.onMessageReceived = onMessageReceived;
     }
@@ -28,15 +31,36 @@ class WebRTCService {
             const state = peerConnection.connectionState;
             if (state === "connected") {
                 console.log(`Peers connected with ${peerId} successfully`);
+                this.retryCount[peerId] = 0;
             } else if (state === "disconnected" || state === "failed") {
-                console.error(
-                    `Connection failed or disconnected with ${peerId}`
-                );
-                this.cleanUpPeer(peerId);
+                console.error(`Connection failed or disconnected with ${peerId}`);
+
+                if (!this.retryCount[peerId]) this.retryCount[peerId] = 0;
+
+                if (this.retryCount[peerId] < this.maxRetries) {
+                    this.retryCount[peerId]++;
+                    setTimeout(() => this.retryConnection(peerId), this.retryInterval);
+                } else {
+                    console.error(`Max retries reached for ${peerId}`);
+                    this.cleanUpPeer(peerId);
+                }
             }
         };
 
         return peerConnection;
+    }
+
+    async retryConnection(peerId) {
+        console.log(`Retrying connection with ${peerId}...`);
+        this.cleanUpPeer(peerId);
+
+        const peerConnection = this.initializePeerConnection(peerId);
+        this.peerConnections[peerId] = peerConnection;
+        this.initializeDataChannel(peerId, peerConnection);
+
+        if (this.isSender) {
+            await this.createOffer(peerId);
+        }
     }
 
     initializeDataChannel(peerId, peerConnection) {
@@ -55,19 +79,24 @@ class WebRTCService {
 
     setupChannelEvents(peerId, channel) {
         channel.onopen = () => {
+            console.log(`Data channel with ${peerId} opened`);
             this.isChannelOpen[peerId] = true;
             if (this.channelOpenCallback) this.channelOpenCallback(peerId);
         };
 
         channel.onclose = () => {
+            console.log(`Data channel with ${peerId} closed`);
             this.isChannelOpen[peerId] = false;
         };
 
         channel.onerror = (error) => {
             console.error("Data channel error:", error);
+            // Avoid calling close here to prevent unintended premature closure
+            // Only log the error and monitor if channel can still function
         };
 
         channel.onmessage = (event) => {
+            console.log("Raw message received on data channel:", event.data);
             this.onMessageReceived(event.data, peerId);
         };
 
@@ -196,6 +225,7 @@ class WebRTCService {
         Object.keys(this.channels).forEach((peerId) => {
             const channel = this.channels[peerId];
             if (channel && channel.readyState === "open") {
+                console.log(`Sending message to ${peerId}:`, message)
                 channel.send(message);
             } else {
                 console.warn(

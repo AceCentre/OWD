@@ -31,24 +31,37 @@ const SenderApp = () => {
     useEffect(() => {
         if (sessionId && websocketURL) {
             const webrtc = new WebRTCService((receivedMessage) => {
-                const messageData = JSON.parse(receivedMessage);
+                try {
+                    const messageData = JSON.parse(receivedMessage);
+                    console.log("Sender received message:", messageData); // Enhanced log
 
-                if (messageData.type === messageTypes.CHANNEL_CONNECTED) {
-                    setIsConnected(true);
+                    if (messageData.type === messageTypes.CONNECTED) {
+                        console.log("Display acknowledged connection on sender side.");
+                        setIsConnected(true);
+                    } else {
+                        console.warn("Unexpected message type received:", messageData.type);
+                    }
+                } catch (error) {
+                    console.error("Error parsing received message on sender:", error);
                 }
             }, true);
 
             webrtc.onChannelOpen(() => {
-                setIsConnected(true);
-                webrtc.sendMessage(
-                    JSON.stringify({ type: messageTypes.CHANNEL_CONNECTED })
-                );
+                if (!isConnected) { // Only set if not already connected
+                    console.log("Data channel opened with display on sender.");
+                    setIsConnected(true);
+                    webrtc.sendMessage(
+                        JSON.stringify({ type: messageTypes.CHANNEL_CONNECTED })
+                    );
+                    console.log("Sender sent CHANNEL_CONNECTED message back to display.");
+                }
             });
 
             webrtc.connect(websocketURL, sessionId);
             setWebrtcService(webrtc);
 
             return () => {
+                console.log("Cleaning up WebRTC connection...");
                 if (webrtc) {
                     webrtc.disconnect();
                     setIsConnected(false);

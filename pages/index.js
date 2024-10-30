@@ -21,37 +21,65 @@ const Home = () => {
 
     const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
 
+    // Extract sessionId from URL query
     useEffect(() => {
         if (router.query.sessionId) {
             setSessionId(router.query.sessionId);
         }
     }, [router]);
 
-    const handleConnect = () => {
+    // Initialize WebRTCService if sessionId and websocketURL are available
+    useEffect(() => {
         if (sessionId && websocketURL) {
-            const webrtc = new WebRTCService((receivedMessage) => {
+            const service = new WebRTCService((receivedMessage) => {
                 const messageData = JSON.parse(receivedMessage);
 
                 setLive(messageData.isLiveTyping);
-
-                if (messageData.type === messageTypes.CONNECTED) {
-                    setIsConnected(true);
-                } else if (messageData.type === messageTypes.TYPING) {
-                    setText("Typing...");
-                } else if (messageData.type === messageTypes.MESSAGE) {
+                if (messageData.type === messageTypes.MESSAGE) {
                     setText(messageData.content);
                 }
             }, false);
 
-            webrtc.onChannelOpen(() => {
+            service.onChannelOpen(() => {
                 setIsConnected(true);
-                webrtc.sendMessage(
-                    JSON.stringify({ type: messageTypes.CHANNEL_CONNECTED })
+                console.log("Data channel opened with sender.");
+                service.sendMessage(
+                    JSON.stringify({ type: messageTypes.CONNECTED })
+                );
+                console.log("Sent CHANNEL_CONNECTED message to sender.");
+            });
+
+            service.connect(websocketURL, sessionId);
+            setWebrtcService(service);
+
+            return () => {
+                // Clean up on unmount
+                service.disconnect();
+                setIsConnected(false);
+            };
+        }
+    }, [sessionId, websocketURL]);
+
+    const handleConnect = () => {
+        if (sessionId && websocketURL) {
+            const service = new WebRTCService((receivedMessage) => {
+                const messageData = JSON.parse(receivedMessage);
+
+                setLive(messageData.isLiveTyping);
+                if (messageData.type === messageTypes.MESSAGE) {
+                    setText(messageData.content);
+                }
+            }, false);
+
+            service.onChannelOpen(() => {
+                setIsConnected(true);
+                service.sendMessage(
+                    JSON.stringify({ type: messageTypes.CONNECTED })
                 );
             });
 
-            webrtc.connect(websocketURL, sessionId);
-            setWebrtcService(webrtc);
+            service.connect(websocketURL, sessionId);
+            setWebrtcService(service);
         } else {
             console.warn(
                 "Session ID and WebSocket URL are required to connect."
@@ -62,15 +90,6 @@ const Home = () => {
     const handleSessionIdChange = (e) => {
         setSessionId(e.target.value);
     };
-
-    useEffect(() => {
-        return () => {
-            if (webrtcService) {
-                webrtcService.disconnect();
-                setIsConnected(false);
-            }
-        };
-    }, [webrtcService]);
 
     return (
         <AntComponents.Flex
@@ -115,5 +134,7 @@ const Home = () => {
         </AntComponents.Flex>
     );
 };
+
+
 
 export default Home;
