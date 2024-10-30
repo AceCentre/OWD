@@ -19,21 +19,25 @@ function MyApp({ Component, pageProps }) {
         }
 
         // Request notification permission if not already granted or denied
-        if (Notification.permission === "default") {
+        if (typeof Notification !== "undefined" && Notification.permission === "default") {
             Notification.requestPermission().then((permission) => {
                 if (permission === "granted") {
                     console.log("Notifications enabled.");
                 } else {
                     console.log("Notifications disabled.");
                 }
+            }).catch((error) => {
+                console.error("Notification permission request failed:", error);
             });
+        } else {
+            console.warn("Notifications API not supported on this browser.");
         }
     }, []);
 
     return (
         <>
             <Head>
-                <title>AAC Display App</title>
+                <title>OWD - AAC Display App</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
             </Head>
             <Component {...pageProps} />

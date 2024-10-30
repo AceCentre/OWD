@@ -1,7 +1,7 @@
 {
     "background_color": "#ffffff",
     "display": "standalone",
-    "name": "AAC Display App",
+    "name": "OWD - AAC Display App",
     "short_name": "DisplayApp",
     "start_url": "/",
     "theme_color": "#000000",
