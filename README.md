@@ -1,7 +1,8 @@
 # OWD - Open Wireless Display
 
-Open Wireless Display (OWD) is a cross-platform AAC (Augmentative and Alternative Communication) display app built using Next.js. It leverages **WebRTC** for real-time communication and **BLE** (Bluetooth Low Energy) for short-range connectivity. The app includes a QR code feature for device pairing and supports dual connectivity modes (WebRTC over Wi-Fi or BLE) for sending messages from one device (sender) to another (display).
+Open Wireless Display (OWD) is a cross-platform AAC (Augmentative and Alternative Communication) display app built using Next.js. It leverages **WebRTC** for real-time communication and **BLE** (Bluetooth Low Energy) for short-range connectivity. The app includes a QR code feature for device pairing and supports dual connectivity modes (WebRTC over Wi-Fi or BLE) for sending messages from one device (sender) to multiple display devices.
 
+![OWD App Icon](./public/AppImages/ios/512.png)
 
 ## Access the App
 
@@ -10,23 +11,25 @@ Open Wireless Display (OWD) is a cross-platform AAC (Augmentative and Alternativ
 
 ## Core Purpose
 
-OWD is designed to provide a flexible and customizable AAC display. It allows sender devices to communicate text messages to a paired display device in real time. The display application provides a visually engaging, fullscreen, animated display of the text, making it ideal for communication devices. The display also includes customizable font size, color, and animation styles.
+OWD provides a flexible and customizable AAC display, allowing a sender device to communicate text messages to multiple paired display devices in real time. The display application offers visually engaging, fullscreen, animated text display, ideal for AAC communication. Display settings are customizable, including font size, color, and animation styles.
 
 ### Key Capabilities
-- **Real-Time Communication**: Communicate text via WebRTC or BLE in real time.
-- **Customizable Display**: Configure the font, color, and animations on the display screen.
+- **Multi-Display Communication**: Connect and send messages to multiple displays simultaneously via WebRTC or BLE.
+- **Customizable Display**: Configure the font, color, and animations on each display screen.
 - **QR Code Pairing**: Easy device pairing via QR code.
-- **Typing Indicator**: Show "Typing..." animations when text is being entered but not yet sent.
+- **Typing Indicator**: Show "Typing..." animations while text is being entered.
 - **Offline Support**: Caches essential files for offline use in Progressive Web App (PWA) environments.
+- **Automatic Reconnection**: Automatically handles reconnection for reliable communication across devices.
 
 ## Features
 
 - **Cross-Platform Compatibility**: Works seamlessly across desktops, tablets, and mobile devices.
 - **Dual Connectivity**: Supports both WebRTC (for Wi-Fi connectivity) and BLE (for short-range communication).
-- **Configurable Display**: Customize font styles, colors, animations, and font sizes on the display device.
+- **Configurable Display**: Customize font styles, colors, animations, and font sizes on each display.
 - **QR Code Pairing**: Generate and scan QR codes for pairing sender and display devices.
-- **Typing Indicator**: Provides real-time feedback when text is being entered on the sender device before the message is sent.
+- **Typing Indicator**: Provides real-time feedback when text is being entered on the sender before the message is sent.
 - **Service Worker**: Caches essential files for offline use in Progressive Web App (PWA) environments.
+- **Robust Reconnection Handling**: Automatically reconnects to maintain stable communication if the connection is interrupted.
 
 ## Prerequisites
 
@@ -192,6 +195,8 @@ To deploy the OWD app to a platform like **Heroku** or **DigitalOcean**, follow 
    ```
 
 ## Writing a Sender App for Other Platforms
+
+See our examples at http://github.com/acecentre/owd-utils for some examples but in brief
 
 To create your own sender app (e.g., in **React Native** or **Swift**), use WebRTC or BLE to pair and send messages to the OWD display. The core logic involves:
 
