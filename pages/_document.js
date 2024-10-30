@@ -8,6 +8,7 @@ export default function Document() {
                 <link rel="icon" type="image/png" sizes="32x32" href="/AppImages/ios/32.png" />
                 <link rel="icon" type="image/png" sizes="16x16" href="/AppImages/ios/16.png" />
                 <link rel="manifest" href="/manifest.json" />
+                <meta name="mobile-web-app-capable" content="yes" />
                 <meta name="theme-color" content="#000000" />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link

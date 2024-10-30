@@ -43,9 +43,12 @@ export const AntComponents = {
         { ssr: false }
     ),
     Row: dynamic(() => import("antd").then((mod) => mod.Row), { ssr: false }),
-    Select: dynamic(() => import("antd").then((mod) => mod.Select), {
-        ssr: false,
-    }),
+    Select: dynamic(async () => {
+        const mod = await import("antd");
+        const SelectComponent = mod.Select;
+        SelectComponent.Option = mod.Select.Option;
+        return SelectComponent;
+    }, { ssr: false }),
     Tabs: dynamic(() => import("antd").then((mod) => mod.Tabs), {
         ssr: false,
     }),

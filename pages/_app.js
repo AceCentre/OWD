@@ -17,21 +17,6 @@ function MyApp({ Component, pageProps }) {
                     console.error("Service Worker registration failed:", error);
                 });
         }
-
-        // Request notification permission if not already granted or denied
-        if (typeof Notification !== "undefined" && Notification.permission === "default") {
-            Notification.requestPermission().then((permission) => {
-                if (permission === "granted") {
-                    console.log("Notifications enabled.");
-                } else {
-                    console.log("Notifications disabled.");
-                }
-            }).catch((error) => {
-                console.error("Notification permission request failed:", error);
-            });
-        } else {
-            console.warn("Notifications API not supported on this browser.");
-        }
     }, []);
 
     return (
