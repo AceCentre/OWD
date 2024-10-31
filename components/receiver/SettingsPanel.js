@@ -11,26 +11,30 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
     const [lines, setLines] = useState(settings.lines);
     const [speed, setSpeed] = useState(settings.speed);
     const [fontFamily, setFontFamily] = useState(settings.fontFamily || "Arial");
-    const [notificationStatus, setNotificationStatus] = useState(Notification.permission);
+    const [notificationStatus, setNotificationStatus] = useState(
+        typeof Notification !== "undefined" ? Notification.permission : "unsupported"
+    );
 
     const handleEnableNotifications = () => {
-        if (typeof Notification !== "undefined") {
-            if (Notification.permission === "default") {
-                Notification.requestPermission()
-                    .then((permission) => {
-                        setNotificationStatus(permission);
-                        if (permission === "granted") {
-                            console.log("Notifications enabled.");
-                        } else if (permission === "denied") {
-                            console.log("Notifications denied.");
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Notification permission request failed:", error);
-                    });
-            }
-        } else {
+        if (typeof Notification === "undefined") {
+            setNotificationStatus("unsupported");
             console.warn("Notifications API not supported on this browser.");
+            return;
+        }
+
+        if (Notification.permission === "default") {
+            Notification.requestPermission()
+                .then((permission) => {
+                    setNotificationStatus(permission);
+                    if (permission === "granted") {
+                        console.log("Notifications enabled.");
+                    } else if (permission === "denied") {
+                        console.log("Notifications denied.");
+                    }
+                })
+                .catch((error) => {
+                    console.error("Notification permission request failed:", error);
+                });
         }
     };
 
