@@ -12,6 +12,20 @@ self.addEventListener("install", (event) => {
     );
 });
 
+self.addEventListener("activate", (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) =>
+            Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName); // Clean up old caches
+                    }
+                })
+            )
+        )
+    );
+});
+
 self.addEventListener("fetch", (event) => {
     event.respondWith(
         caches
