@@ -11,6 +11,7 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
     const [lines, setLines] = useState(settings.lines);
     const [speed, setSpeed] = useState(settings.speed);
     const [fontFamily, setFontFamily] = useState(settings.fontFamily || "Arial");
+    const [showCopyButton, setShowCopyButton] = useState(settings.showCopyButton || false);
     const [notificationStatus, setNotificationStatus] = useState(
         typeof Notification !== "undefined" ? Notification.permission : "unsupported"
     );
@@ -47,6 +48,7 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
             lines,
             speed,
             fontFamily,
+            showCopyButton,
         });
         closeSettings();
     };
@@ -80,6 +82,11 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
                     </AntComponents.Item>
                     <AntComponents.Item label="Background Color" className="settings-item">
                         <AntComponents.Input type="color" onChange={(e) => setBackgroundColor(e.target.value)} value={backgroundColor} />
+                    </AntComponents.Item>
+                    <AntComponents.Item className="settings-item">
+                        <AntComponents.Checkbox checked={showCopyButton} onChange={(e) => setShowCopyButton(e.target.checked)}>
+                            Show Copy Button
+                        </AntComponents.Checkbox>
                     </AntComponents.Item>
                 </AntComponents.Form>
             ),

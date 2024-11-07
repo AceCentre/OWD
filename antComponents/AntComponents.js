@@ -12,6 +12,9 @@ export const AntComponents = {
     Content: dynamic(() => import("antd").then((mod) => mod.Layout.Content), {
         ssr: false,
     }),
+    CopyOutlined: dynamic(() => import("@ant-design/icons").then((mod) => mod.CopyOutlined), {
+        ssr: false,
+    }),
     Flex: dynamic(() => import("antd").then((mod) => mod.Flex), { ssr: false }),
     Footer: dynamic(() => import("antd").then((mod) => mod.Layout.Footer), {
         ssr: false,

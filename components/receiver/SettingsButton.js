@@ -13,3 +13,4 @@ const SettingButton = ({ setShowSettings, isConnected, sessionId }) => (
 );
 
 export default SettingButton;
+

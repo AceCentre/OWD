@@ -8,6 +8,7 @@ import TextDisplay from "../components/receiver/TextDisplay";
 import messageTypes from "../utils/messageTypes.json";
 import initialTextSettings from "../utils/initialTextSettings.json";
 import WebRTCService from "../services/WebRTCService";
+import CopyButton from "../components/receiver/CopyButton";
 
 const Home = () => {
     const [isConnected, setIsConnected] = useState(false);
@@ -20,6 +21,14 @@ const Home = () => {
     const router = useRouter();
 
     const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
+
+    const handleCopyText = async () => {
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch (err) {
+            console.error('Failed to copy text:', err);
+        }
+    };
 
     // Extract sessionId from URL query
     useEffect(() => {
@@ -117,20 +126,24 @@ const Home = () => {
                     handleConnect={handleConnect}
                 />
             )}
-
+        
+        <div className="button-container">
             <SettingsButton
                 isConnected={isConnected}
                 setShowSettings={setShowSettings}
                 sessionId={sessionId}
             />
-
+            {settings.showCopyButton && (
+            <CopyButton onCopy={handleCopyText} isConnected={isConnected} />
+        )}
+        </div>
             {showSettings && (
-                <SettingsPanel
-                    settings={settings}
-                    onSettingsChange={setSettings}
-                    closeSettings={() => setShowSettings(false)}
-                />
-            )}
+            <SettingsPanel
+                settings={settings}
+                onSettingsChange={setSettings}
+                closeSettings={() => setShowSettings(false)}
+            />
+        )}
         </AntComponents.Flex>
     );
 };
