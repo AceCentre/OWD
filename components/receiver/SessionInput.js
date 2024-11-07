@@ -1,6 +1,6 @@
 import { AntComponents } from "../../antComponents/AntComponents";
 
-const SessionInput = ({ sessionId, handleSessionIdChange, handleConnect }) => (
+const SessionInput = ({ sessionId, handleSessionIdChange }) => (
     <AntComponents.Flex
         className="session-id-container"
         justify="center"
@@ -16,8 +16,7 @@ const SessionInput = ({ sessionId, handleSessionIdChange, handleConnect }) => (
         />
         <AntComponents.Button
             className="session-connect-button"
-            disabled={!sessionId}
-            onClick={handleConnect}
+            disabled
             type="primary"
         >
             Connect

@@ -32,20 +32,27 @@ const Home = () => {
 
     // Extract sessionId from URL query
     useEffect(() => {
-        if (router.query.sessionId) {
+        if (router.query.sessionId && sessionId === "") {
             setSessionId(router.query.sessionId);
         }
     }, [router]);
 
     // Initialize WebRTCService if sessionId and websocketURL are available
     useEffect(() => {
-        if (sessionId && websocketURL) {
+        console.log("Attempting to connect:", sessionId, websocketURL);
+        if (sessionId && websocketURL) {            
             const service = new WebRTCService((receivedMessage) => {
-                const messageData = JSON.parse(receivedMessage);
+                 console.log("Received message on Receiver:", receivedMessage); 
 
-                setLive(messageData.isLiveTyping);
-                if (messageData.type === messageTypes.MESSAGE) {
-                    setText(messageData.content);
+                try {
+                    const messageData = JSON.parse(receivedMessage);
+                    console.log("Parsed message data:", messageData);
+                    setLive(messageData.isLiveTyping);
+                    if (messageData.type === messageTypes.MESSAGE) {
+                        setText(messageData.content);
+                    }
+                } catch (error) {
+                    console.error("Error parsing message:", error);
                 }
             }, false);
 
@@ -68,33 +75,6 @@ const Home = () => {
             };
         }
     }, [sessionId, websocketURL]);
-
-    const handleConnect = () => {
-        if (sessionId && websocketURL) {
-            const service = new WebRTCService((receivedMessage) => {
-                const messageData = JSON.parse(receivedMessage);
-
-                setLive(messageData.isLiveTyping);
-                if (messageData.type === messageTypes.MESSAGE) {
-                    setText(messageData.content);
-                }
-            }, false);
-
-            service.onChannelOpen(() => {
-                setIsConnected(true);
-                service.sendMessage(
-                    JSON.stringify({ type: messageTypes.CONNECTED })
-                );
-            });
-
-            service.connect(websocketURL, sessionId);
-            setWebrtcService(service);
-        } else {
-            console.warn(
-                "Session ID and WebSocket URL are required to connect."
-            );
-        }
-    };
 
     const handleSessionIdChange = (e) => {
         setSessionId(e.target.value);
@@ -123,7 +103,6 @@ const Home = () => {
                 <SessionInput
                     sessionId={sessionId}
                     handleSessionIdChange={handleSessionIdChange}
-                    handleConnect={handleConnect}
                 />
             )}
         
