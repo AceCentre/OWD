@@ -18,6 +18,8 @@ const Home = () => {
     const [live, setLive] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [text, setText] = useState("Waiting for messages...");
+    const [messageHistory, setMessageHistory] = useState([]);
+    const [currentMessageIndex, setCurrentMessageIndex] = useState(0); 
     const router = useRouter();
 
     const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
@@ -50,6 +52,10 @@ const Home = () => {
                     setLive(messageData.isLiveTyping);
                     if (messageData.type === messageTypes.MESSAGE) {
                         setText(messageData.content);
+                        setMessageHistory((prevHistory) => {
+                            const newHistory = [...prevHistory, messageData.content];
+                            return newHistory.slice(-5); // Keep last 5 messages
+                        });
                     }
                 } catch (error) {
                     console.error("Error parsing message:", error);
@@ -76,6 +82,13 @@ const Home = () => {
         }
     }, [sessionId, websocketURL]);
 
+    const navigateHistory = (direction) => {
+        setCurrentMessageIndex((prevIndex) => {
+            const newIndex = prevIndex + direction;
+            return Math.max(0, Math.min(newIndex, messageHistory.length - 1));
+        });
+    };
+
     const handleSessionIdChange = (e) => {
         setSessionId(e.target.value);
     };
@@ -90,7 +103,7 @@ const Home = () => {
             {isConnected ? (
                 <TextDisplay
                     key={text}
-                    text={text}
+                    text={settings.enableHistory ? (messageHistory[currentMessageIndex] || text) : text}
                     fontSize={settings.fontSize}
                     fontFamily={settings.fontFamily}
                     animationType={live ? "none" : settings.animationType}
@@ -115,6 +128,20 @@ const Home = () => {
             {settings.showCopyButton && (
             <CopyButton onCopy={handleCopyText} isConnected={isConnected} />
         )}
+
+        {isConnected && settings.enableHistory ? (
+            <AntComponents.Flex direction="row" gap="small">
+                <AntComponents.Button onClick={() => navigateHistory(-1)} disabled={currentMessageIndex === 0}>
+                    Previous
+                </AntComponents.Button>
+                <AntComponents.Button onClick={() => setCurrentMessageIndex(messageHistory.length - 1)}>
+                    Live
+                </AntComponents.Button>                    
+                <AntComponents.Button onClick={() => navigateHistory(1)} disabled={currentMessageIndex === messageHistory.length - 1}>
+                    Next
+                </AntComponents.Button>
+            </AntComponents.Flex>
+            ) : null}
         </div>
             {showSettings && (
             <SettingsPanel

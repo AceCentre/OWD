@@ -4,6 +4,7 @@ import TextDisplay from "./TextDisplay";
 
 const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
     const [activeTab, setActiveTab] = useState("display");
+    const [enableHistory, setEnableHistory] = useState(settings.enableHistory || false); 
     const [animationType, setAnimationType] = useState(settings.animationType);
     const [backgroundColor, setBackgroundColor] = useState(settings.backgroundColor);
     const [color, setColor] = useState(settings.color);
@@ -49,6 +50,7 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
             speed,
             fontFamily,
             showCopyButton,
+            enableHistory,
         });
         closeSettings();
     };
@@ -82,6 +84,14 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
                     </AntComponents.Item>
                     <AntComponents.Item label="Background Color" className="settings-item">
                         <AntComponents.Input type="color" onChange={(e) => setBackgroundColor(e.target.value)} value={backgroundColor} />
+                    </AntComponents.Item>
+                    <AntComponents.Item label="Enable History">
+                        <AntComponents.Checkbox
+                            checked={enableHistory}
+                            onChange={(e) => setEnableHistory(e.target.checked)}
+                        >
+                            Turn on History
+                        </AntComponents.Checkbox>
                     </AntComponents.Item>
                     <AntComponents.Item className="settings-item">
                         <AntComponents.Checkbox checked={showCopyButton} onChange={(e) => setShowCopyButton(e.target.checked)}>
