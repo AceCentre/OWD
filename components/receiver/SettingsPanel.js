@@ -145,6 +145,7 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
                 </AntComponents.Button>
             }
             onCancel={closeSettings}
+            style={{ top: 20 }}
         >
             <AntComponents.Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
             {activeTab !== "usersettings" && (
