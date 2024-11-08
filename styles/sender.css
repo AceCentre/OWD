@@ -37,6 +37,20 @@
     text-align: center;
 }
 
+.advanced-toggle {
+    color: grey;
+    font-size: 0.9rem;
+    opacity: 0.7;
+    cursor: pointer;
+    transition: color 0.2s ease;
+
+    /* Optional: Change color on hover */
+    &:hover {
+        color: darkgrey;
+        opacity: 1;
+    }
+}
+
 /* responsive */
 @media (max-width: 767px) {
     .sender-container {
@@ -72,3 +86,4 @@
         height: 128px !important;
     }
 }
+

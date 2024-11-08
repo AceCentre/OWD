@@ -21,6 +21,7 @@ const SenderApp = () => {
     const [isTyping, setIsTyping] = useState(false);
     const [isLiveTyping, setIsLiveTyping] = useState(false);
     const [isPersistent, setIsPersistent] = useState(false);
+    const [showAdvanced, setShowAdvanced] = useState(false); 
 
     const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
 
@@ -157,19 +158,25 @@ const SenderApp = () => {
 
             <QRCodeDisplay sessionId={sessionId} />
 
-            <div>
-                <AntComponents.Input
-                    placeholder="Custom Session ID"
-                    value={sessionId}
-                    onChange={(e) => setSessionId(e.target.value)}
-                />
-                <AntComponents.Checkbox
-                    checked={isPersistent}
-                    onChange={togglePersistence}
-                >
-                    Persistent Session
-                </AntComponents.Checkbox>
-            </div>
+            <AntComponents.Button className="advanced-toggle" type="link" onClick={() => setShowAdvanced(!showAdvanced)}>
+                {showAdvanced ? "Hide Session ID Options" : "Show Session ID Options"}
+            </AntComponents.Button>
+
+            {showAdvanced && (
+                <div className="advanced-options">
+                    <AntComponents.Input
+                        placeholder="Custom Session ID"
+                        value={sessionId}
+                        onChange={(e) => setSessionId(e.target.value)}
+                    />
+                    <AntComponents.Checkbox
+                        checked={isPersistent}
+                        onChange={togglePersistence}
+                    >
+                        Persistent Session
+                    </AntComponents.Checkbox>
+                </div>
+            )}
 
             <SenderText
                 isConnected={isConnected}
