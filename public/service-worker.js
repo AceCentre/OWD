@@ -1,4 +1,5 @@
-const CACHE_NAME = "owd-display-cache";
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `owd-display-cache-${CACHE_VERSION}`
 const urlsToCache = ["/", "/manifest.json"];
 
 self.addEventListener("install", (event) => {
