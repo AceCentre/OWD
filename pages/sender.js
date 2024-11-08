@@ -20,12 +20,18 @@ const SenderApp = () => {
     const [message, setMessage] = useState("");
     const [isTyping, setIsTyping] = useState(false);
     const [isLiveTyping, setIsLiveTyping] = useState(false);
+    const [isPersistent, setIsPersistent] = useState(false);
 
     const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
 
     useEffect(() => {
-        const generatedSessionId = generateWordCode();
-        setSessionId(generatedSessionId);
+        const savedSessionId = localStorage.getItem("persistentSessionId");
+        if (savedSessionId) {
+            setSessionId(savedSessionId);
+            setIsPersistent(true);
+        } else {
+            setSessionId(generateWordCode());
+        }
     }, []);
 
     useEffect(() => {
@@ -47,12 +53,14 @@ const SenderApp = () => {
             }, true);
 
             webrtc.onChannelOpen(() => {
+                console.log('onChanelOpen in senderApp')
                 if (!isConnected) { // Only set if not already connected
                     console.log("Data channel opened with display on sender.");
                     setIsConnected(true);
                     webrtc.sendMessage(
                         JSON.stringify({ type: messageTypes.CHANNEL_CONNECTED })
                     );
+
                     console.log("Sender sent CHANNEL_CONNECTED message back to display.");
                 }
             });
@@ -84,6 +92,15 @@ const SenderApp = () => {
             });
         }
     }, [isConnected, webrtcService]);
+
+    const togglePersistence = () => {
+        setIsPersistent(!isPersistent);
+        if (!isPersistent) {
+            localStorage.setItem("persistentSessionId", sessionId);
+        } else {
+            localStorage.removeItem("persistentSessionId");
+        }
+    };
 
     const sendMessage = () => {
         if (webrtcService && isConnected && message.length > 0) {
@@ -139,6 +156,20 @@ const SenderApp = () => {
             </AntComponents.Title>
 
             <QRCodeDisplay sessionId={sessionId} />
+
+            <div>
+                <AntComponents.Input
+                    placeholder="Custom Session ID"
+                    value={sessionId}
+                    onChange={(e) => setSessionId(e.target.value)}
+                />
+                <AntComponents.Checkbox
+                    checked={isPersistent}
+                    onChange={togglePersistence}
+                >
+                    Persistent Session
+                </AntComponents.Checkbox>
+            </div>
 
             <SenderText
                 isConnected={isConnected}

@@ -18,6 +18,8 @@ const Home = () => {
     const [live, setLive] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [text, setText] = useState("Waiting for messages...");
+    const [messageHistory, setMessageHistory] = useState([]);
+    const [currentMessageIndex, setCurrentMessageIndex] = useState(0); 
     const router = useRouter();
 
     const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
@@ -32,20 +34,31 @@ const Home = () => {
 
     // Extract sessionId from URL query
     useEffect(() => {
-        if (router.query.sessionId) {
+        if (router.query.sessionId && sessionId === "") {
             setSessionId(router.query.sessionId);
         }
     }, [router]);
 
     // Initialize WebRTCService if sessionId and websocketURL are available
     useEffect(() => {
-        if (sessionId && websocketURL) {
+        console.log("Attempting to connect:", sessionId, websocketURL);
+        if (sessionId && websocketURL) {            
             const service = new WebRTCService((receivedMessage) => {
-                const messageData = JSON.parse(receivedMessage);
+                 console.log("Received message on Receiver:", receivedMessage); 
 
-                setLive(messageData.isLiveTyping);
-                if (messageData.type === messageTypes.MESSAGE) {
-                    setText(messageData.content);
+                try {
+                    const messageData = JSON.parse(receivedMessage);
+                    console.log("Parsed message data:", messageData);
+                    setLive(messageData.isLiveTyping);
+                    if (messageData.type === messageTypes.MESSAGE) {
+                        setText(messageData.content);
+                        setMessageHistory((prevHistory) => {
+                            const newHistory = [...prevHistory, messageData.content];
+                            return newHistory.slice(-5); // Keep last 5 messages
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error parsing message:", error);
                 }
             }, false);
 
@@ -69,31 +82,11 @@ const Home = () => {
         }
     }, [sessionId, websocketURL]);
 
-    const handleConnect = () => {
-        if (sessionId && websocketURL) {
-            const service = new WebRTCService((receivedMessage) => {
-                const messageData = JSON.parse(receivedMessage);
-
-                setLive(messageData.isLiveTyping);
-                if (messageData.type === messageTypes.MESSAGE) {
-                    setText(messageData.content);
-                }
-            }, false);
-
-            service.onChannelOpen(() => {
-                setIsConnected(true);
-                service.sendMessage(
-                    JSON.stringify({ type: messageTypes.CONNECTED })
-                );
-            });
-
-            service.connect(websocketURL, sessionId);
-            setWebrtcService(service);
-        } else {
-            console.warn(
-                "Session ID and WebSocket URL are required to connect."
-            );
-        }
+    const navigateHistory = (direction) => {
+        setCurrentMessageIndex((prevIndex) => {
+            const newIndex = prevIndex + direction;
+            return Math.max(0, Math.min(newIndex, messageHistory.length - 1));
+        });
     };
 
     const handleSessionIdChange = (e) => {
@@ -110,7 +103,7 @@ const Home = () => {
             {isConnected ? (
                 <TextDisplay
                     key={text}
-                    text={text}
+                    text={settings.enableHistory ? (messageHistory[currentMessageIndex] || text) : text}
                     fontSize={settings.fontSize}
                     fontFamily={settings.fontFamily}
                     animationType={live ? "none" : settings.animationType}
@@ -123,7 +116,6 @@ const Home = () => {
                 <SessionInput
                     sessionId={sessionId}
                     handleSessionIdChange={handleSessionIdChange}
-                    handleConnect={handleConnect}
                 />
             )}
         
@@ -136,6 +128,20 @@ const Home = () => {
             {settings.showCopyButton && (
             <CopyButton onCopy={handleCopyText} isConnected={isConnected} />
         )}
+
+        {isConnected && settings.enableHistory ? (
+            <AntComponents.Flex direction="row" gap="small">
+                <AntComponents.Button onClick={() => navigateHistory(-1)} disabled={currentMessageIndex === 0}>
+                    Previous
+                </AntComponents.Button>
+                <AntComponents.Button onClick={() => setCurrentMessageIndex(messageHistory.length - 1)}>
+                    Live
+                </AntComponents.Button>                    
+                <AntComponents.Button onClick={() => navigateHistory(1)} disabled={currentMessageIndex === messageHistory.length - 1}>
+                    Next
+                </AntComponents.Button>
+            </AntComponents.Flex>
+            ) : null}
         </div>
             {showSettings && (
             <SettingsPanel
