@@ -82,6 +82,12 @@ const Home = () => {
         }
     }, [sessionId, websocketURL]);
 
+    useEffect(() => {
+    if (settings.enableHistory && messageHistory.length > 0) {
+        setCurrentMessageIndex(messageHistory.length - 1); // Set to "Live"
+    }
+    }, [settings.enableHistory, messageHistory]);
+
     const navigateHistory = (direction) => {
         setCurrentMessageIndex((prevIndex) => {
             const newIndex = prevIndex + direction;
@@ -131,14 +137,27 @@ const Home = () => {
 
         {isConnected && settings.enableHistory ? (
             <AntComponents.Flex direction="row" gap="small">
-                <AntComponents.Button onClick={() => navigateHistory(-1)} disabled={currentMessageIndex === 0}>
-                    Previous
+                <AntComponents.Button 
+                    onClick={() => navigateHistory(-1)} 
+                    disabled={currentMessageIndex === 0}
+                >
+                    ←
                 </AntComponents.Button>
-                <AntComponents.Button onClick={() => setCurrentMessageIndex(messageHistory.length - 1)}>
+                <AntComponents.Button 
+                    onClick={() => setCurrentMessageIndex(messageHistory.length - 1)}
+                    style={{
+                        backgroundColor: currentMessageIndex === messageHistory.length - 1 ? "rgba(255, 255, 0, 0.4)" : undefined,
+                        color: currentMessageIndex === messageHistory.length - 1 ? "black" : undefined,
+                        animation: currentMessageIndex === messageHistory.length - 1 ? "glow 1.5s infinite" : undefined, // Pulsating glow
+                    }}
+                >
                     Live
-                </AntComponents.Button>                    
-                <AntComponents.Button onClick={() => navigateHistory(1)} disabled={currentMessageIndex === messageHistory.length - 1}>
-                    Next
+                </AntComponents.Button>
+                <AntComponents.Button 
+                    onClick={() => navigateHistory(1)} 
+                    disabled={currentMessageIndex === messageHistory.length - 1}
+                >
+                    →
                 </AntComponents.Button>
             </AntComponents.Flex>
             ) : null}
