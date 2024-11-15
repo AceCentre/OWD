@@ -77,6 +77,7 @@ const SettingsPanel = ({ onSettingsChange, closeSettings, settings }) => {
                             <AntComponents.Option value="Dancing Script">Handwriting (Dancing Script)</AntComponents.Option>
                             <AntComponents.Option value="Oswald">Bold Impact (Oswald)</AntComponents.Option>
                             <AntComponents.Option value="Permanent Marker">Marker (Permanent Marker)</AntComponents.Option>
+                            <AntComponents.Option value="Architects Daughter">Handwriting 2 (Architects Daughter)</AntComponents.Option>
                         </AntComponents.Select>
                     </AntComponents.Item>
                     <AntComponents.Item label="Color" className="settings-item">

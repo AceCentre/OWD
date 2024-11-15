@@ -17,7 +17,7 @@ export default function Document() {
                     crossOrigin="true"
                 />
                 <link
-                    href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Oswald:wght@200..700&family=Permanent+Marker&display=swap"
+                    href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Dancing+Script:wght@400..700&family=Oswald:wght@200..700&family=Permanent+Marker&display=swap"
                     rel="stylesheet"
                 />
                 <link rel="apple-touch-icon" sizes="180x180" href="/AppImages/ios/180.png" />
