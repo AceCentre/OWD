@@ -140,8 +140,8 @@ const Home = () => {
                 <AntComponents.Button 
                     onClick={() => navigateHistory(-1)} 
                     disabled={currentMessageIndex === 0}
+                    icon={<AntComponents.LeftOutlined />}
                 >
-                    ←
                 </AntComponents.Button>
                 <AntComponents.Button 
                     onClick={() => setCurrentMessageIndex(messageHistory.length - 1)}
@@ -156,8 +156,8 @@ const Home = () => {
                 <AntComponents.Button 
                     onClick={() => navigateHistory(1)} 
                     disabled={currentMessageIndex === messageHistory.length - 1}
+                    icon={<AntComponents.RightOutlined />}
                 >
-                    →
                 </AntComponents.Button>
             </AntComponents.Flex>
             ) : null}
