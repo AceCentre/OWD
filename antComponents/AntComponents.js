@@ -64,4 +64,10 @@ export const AntComponents = {
     Title: dynamic(() => import("antd").then((mod) => mod.Typography.Title), {
         ssr: false,
     }),
+    LeftOutlined: dynamic(() => import("@ant-design/icons").then((mod) => mod.LeftOutlined), {
+        ssr: false,
+    }),
+    RightOutlined: dynamic(() => import("@ant-design/icons").then((mod) => mod.RightOutlined), {
+        ssr: false,
+    }),
 };
