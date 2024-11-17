@@ -7,13 +7,13 @@ import SettingsPanel from "../components/receiver/SettingsPanel";
 import TextDisplay from "../components/receiver/TextDisplay";
 import messageTypes from "../utils/messageTypes.json";
 import initialTextSettings from "../utils/initialTextSettings.json";
-import WebRTCService from "../services/WebRTCService";
+import DualService from "../services/DualService";
 import CopyButton from "../components/receiver/CopyButton";
 
 const Home = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [sessionId, setSessionId] = useState("");
-    const [webrtcService, setWebrtcService] = useState(null);
+    const [dualService, setDualService] = useState(null);
     const [settings, setSettings] = useState(initialTextSettings);
     const [live, setLive] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
@@ -41,20 +41,17 @@ const Home = () => {
 
     // Initialize WebRTCService if sessionId and websocketURL are available
     useEffect(() => {
-        console.log("Attempting to connect:", sessionId, websocketURL);
-        if (sessionId && websocketURL) {            
-            const service = new WebRTCService((receivedMessage) => {
-                 console.log("Received message on Receiver:", receivedMessage); 
-
+        if (sessionId) {
+            const service = new DualService((receivedMessage) => {
                 try {
                     const messageData = JSON.parse(receivedMessage);
-                    console.log("Parsed message data:", messageData);
                     setLive(messageData.isLiveTyping);
+
                     if (messageData.type === messageTypes.MESSAGE) {
                         setText(messageData.content);
                         setMessageHistory((prevHistory) => {
                             const newHistory = [...prevHistory, messageData.content];
-                            return newHistory.slice(-5); // Keep last 5 messages
+                            return newHistory.slice(-5);
                         });
                     }
                 } catch (error) {
@@ -62,25 +59,22 @@ const Home = () => {
                 }
             }, false);
 
-            service.onChannelOpen(() => {
+            // Handle connection state
+            service.onConnected(() => {
                 setIsConnected(true);
-                console.log("Data channel opened with sender.");
-                service.sendMessage(
-                    JSON.stringify({ type: messageTypes.CONNECTED })
-                );
-                console.log("Sent CHANNEL_CONNECTED message to sender.");
+                console.log("Connected to sender.");
             });
 
-            service.connect(websocketURL, sessionId);
-            setWebrtcService(service);
+            // Initialize hierarchical connections
+            service.initConnections('display');
+            setDualService(service);
 
             return () => {
-                // Clean up on unmount
-                service.disconnect();
+                service.cleanup(); // Cleanup connections
                 setIsConnected(false);
             };
         }
-    }, [sessionId, websocketURL]);
+    }, [sessionId]);
 
     useEffect(() => {
     if (settings.enableHistory && messageHistory.length > 0) {
