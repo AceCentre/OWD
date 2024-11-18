@@ -40,6 +40,7 @@ class DualService {
         this.sessionId = generateUniqueSessionId(); // Generate session ID once
         this.isConnectedCallback = null;
         this.onPeerDiscovered = null; // Callback for peer discovery
+        this.connectionType = null; 
     }
 
     onConnected(callback) {
@@ -52,6 +53,7 @@ class DualService {
         try {
             console.log("Trying mDNS...");
             await this.initLocalDiscovery(role);
+            this.connectionType = "mDNS";
         } catch (mdnsError) {
             console.warn("mDNS failed:", mdnsError);
 
@@ -59,27 +61,37 @@ class DualService {
                 try {
                     console.log("Trying BLE...");
                     await this.initBLEConnection();
+                    this.connectionType = "BLE";
                 } catch (bleError) {
                     console.warn("BLE failed:", bleError);
 
                     if (!this.isConnected) {
                         console.log("Using WebRTC Signaling Server...");
                         this.initSignalingConnection();
+                        this.connectionType = "WebRTC";
                     }
                 }
             }
+        }
+
+        if (this.isConnectedCallback) {
+            this.isConnectedCallback(this.connectionType || "Unknown");
         }
     }
 
     // Initialize local discovery using mDNS
     async initLocalDiscovery(role) {
+        if (typeof window !== "undefined") {
+            throw new Error("mDNSService can only be used on the server side.");
+        }
+
         return new Promise((resolve, reject) => {
             this.mdnsService = new mDNSService(role, (name, peerRole) => {
                 if (!this.isConnected) {
                     console.log(`Discovered peer: ${name} (${peerRole})`);
                     this.isConnected = true;
                     this.isMDNSActive = true;
-                    if (this.isConnectedCallback) this.isConnectedCallback();
+                    if (this.isConnectedCallback) this.isConnectedCallback("mDNS");
                     resolve(); // Resolve once connected
                 }
             });
@@ -99,6 +111,11 @@ class DualService {
 
     // Initialize BLE connection
     async initBLEConnection() {
+        if (!this.bleService.isBluetoothSupported()) {
+            console.warn("Web Bluetooth API is not supported in this browser.");
+            throw new Error("BLE not supported");
+        }
+
         if (this.isConnected) return; // Prevent redundant connection
 
         try {
@@ -106,7 +123,7 @@ class DualService {
             this.isBLEActive = true;
             this.isConnected = true;
             console.log("BLE connected");
-            if (this.isConnectedCallback) this.isConnectedCallback();
+            if (this.isConnectedCallback) this.isConnectedCallback("BLE");
         } catch (err) {
             console.error("BLE connection error:", err);
             throw err; // Propagate to fallback
@@ -127,7 +144,7 @@ class DualService {
             if (!this.isConnected) {
                 this.isConnected = true;
                 if (this.isConnectedCallback) {
-                    this.isConnectedCallback();
+                    this.isConnectedCallback("webRTC");
                 }
                 this.webrtcService.sendMessage(
                     JSON.stringify({ type: messageTypes.CONNECTED })

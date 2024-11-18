@@ -14,6 +14,7 @@ const Home = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [sessionId, setSessionId] = useState("");
     const [dualService, setDualService] = useState(null);
+    const [connectionType, setConnectionType] = useState("");
     const [settings, setSettings] = useState(initialTextSettings);
     const [live, setLive] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
@@ -39,39 +40,51 @@ const Home = () => {
         }
     }, [router]);
 
-    // Initialize WebRTCService if sessionId and websocketURL are available
+    // Initialize DualService if sessionId is available
     useEffect(() => {
         if (sessionId) {
             const service = new DualService((receivedMessage) => {
                 try {
                     const messageData = JSON.parse(receivedMessage);
-                    setLive(messageData.isLiveTyping);
+                    console.log("Message received on Display:", messageData);
 
+                    // Handle different message types
                     if (messageData.type === messageTypes.MESSAGE) {
+                        setLive(messageData.isLiveTyping || false); // Ensure a fallback for isLiveTyping
                         setText(messageData.content);
                         setMessageHistory((prevHistory) => {
                             const newHistory = [...prevHistory, messageData.content];
-                            return newHistory.slice(-5);
+                            return newHistory.slice(-5); // Keep the last 5 messages
                         });
+                    } else if (messageData.type === messageTypes.TYPING) {
+                        setText("Typing...");
                     }
                 } catch (error) {
-                    console.error("Error parsing message:", error);
+                    console.error("Error parsing received message:", error);
                 }
-            }, false);
-
-            // Handle connection state
-            service.onConnected(() => {
-                setIsConnected(true);
-                console.log("Connected to sender.");
             });
 
-            // Initialize hierarchical connections
-            service.initConnections('display');
+            // Handle connection state
+            service.onConnected((type) => {
+                setIsConnected(true);
+                setConnectionType(type);
+                console.log(`Connected to sender via ${type}.`);
+
+                // Notify sender about successful connection
+                service.sendMessage(
+                    JSON.stringify({ type: messageTypes.CONNECTED })
+                );
+            });
+
+            // Initialize connections
+            service.initConnections("display");
             setDualService(service);
 
+            // Cleanup on unmount
             return () => {
                 service.cleanup(); // Cleanup connections
                 setIsConnected(false);
+                setConnectionType("");
             };
         }
     }, [sessionId]);
@@ -124,6 +137,7 @@ const Home = () => {
                 isConnected={isConnected}
                 setShowSettings={setShowSettings}
                 sessionId={sessionId}
+                connectionType={connectionType}
             />
             {settings.showCopyButton && (
             <CopyButton onCopy={handleCopyText} isConnected={isConnected} />

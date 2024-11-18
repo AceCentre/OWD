@@ -1,4 +1,4 @@
-const SettingButton = ({ setShowSettings, isConnected, sessionId }) => (
+const SettingButton = ({ setShowSettings, isConnected, sessionId, connectionType }) => (
     <div className="settings-button-container">
         <div className="settings-button" onClick={() => setShowSettings(true)}>
             ⚙️ Settings
@@ -7,7 +7,9 @@ const SettingButton = ({ setShowSettings, isConnected, sessionId }) => (
             className="settings-session-id"
             style={{ color: isConnected ? "green" : "red" }}
         >
-            {isConnected ? "●" : "●"} Session ID: {sessionId}
+             {isConnected
+                ? `● Session ID: ${sessionId} (${connectionType})`
+                : `● Session ID: ${sessionId}`}
         </div>
     </div>
 );

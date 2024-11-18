@@ -4,7 +4,7 @@ import { AntComponents } from "../antComponents/AntComponents";
 import QRCodeDisplay from "../components/sender/QRCodeDisplay";
 import SenderText from "../components/sender/SenderText";
 import messageTypes from "../utils/messageTypes.json";
-import WebRTCService from "../services/WebRTCService";
+import DualService from "../services/DualService";
 
 const generateWordCode = () => {
     const word1 = faker.word.adjective();
@@ -16,7 +16,8 @@ const generateWordCode = () => {
 const SenderApp = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [sessionId, setSessionId] = useState("");
-    const [webrtcService, setWebrtcService] = useState(null);
+    const [dualService, setDualService] = useState(null);
+    const [connectionType, setConnectionType] = useState("");
     const [message, setMessage] = useState("");
     const [isTyping, setIsTyping] = useState(false);
     const [isLiveTyping, setIsLiveTyping] = useState(false);
@@ -36,8 +37,8 @@ const SenderApp = () => {
     }, []);
 
     useEffect(() => {
-        if (sessionId && websocketURL) {
-            const webrtc = new WebRTCService((receivedMessage) => {
+        if (sessionId) {
+            const service = new DualService((receivedMessage) => {
                 try {
                     const messageData = JSON.parse(receivedMessage);
                     console.log("Sender received message:", messageData); // Enhanced log
@@ -53,46 +54,27 @@ const SenderApp = () => {
                 }
             }, true);
 
-            webrtc.onChannelOpen(() => {
-                console.log('onChanelOpen in senderApp')
-                if (!isConnected) { // Only set if not already connected
-                    console.log("Data channel opened with display on sender.");
-                    setIsConnected(true);
-                    webrtc.sendMessage(
-                        JSON.stringify({ type: messageTypes.CHANNEL_CONNECTED })
-                    );
+            service.onConnected((type) => {
+                setIsConnected(true);
+                setConnectionType(type); 
+                console.log(`Connected using ${type}.`);
 
-                    console.log("Sender sent CHANNEL_CONNECTED message back to display.");
-                }
+                service.sendMessage(
+                    JSON.stringify({ type: messageTypes.CHANNEL_CONNECTED })
+                );
+                console.log("Sender sent CHANNEL_CONNECTED message to display.");
             });
 
-            webrtc.connect(websocketURL, sessionId);
-            setWebrtcService(webrtc);
+            service.initConnections("sender");
+            setDualService(service);
 
             return () => {
-                console.log("Cleaning up WebRTC connection...");
-                if (webrtc) {
-                    webrtc.disconnect();
-                    setIsConnected(false);
-                }
+                service.cleanup();
+                setIsConnected(false);
+                setConnectionType("");
             };
         }
-    }, [sessionId, websocketURL]);
-
-    useEffect(() => {
-        if (webrtcService) {
-            webrtcService.onChannelOpen(() => {
-                if (isConnected && message.length === 0) {
-                    webrtcService.sendMessage(
-                        JSON.stringify({
-                            type: messageTypes.CONNECTED,
-                            isLiveTyping: isLiveTyping,
-                        })
-                    );
-                }
-            });
-        }
-    }, [isConnected, webrtcService]);
+    }, [sessionId]);
 
     const togglePersistence = () => {
         setIsPersistent(!isPersistent);
@@ -104,8 +86,8 @@ const SenderApp = () => {
     };
 
     const sendMessage = () => {
-        if (webrtcService && isConnected && message.length > 0) {
-            webrtcService.sendMessage(
+        if (dualService && isConnected && message.length > 0) {
+            dualService.sendMessage(
                 JSON.stringify({
                     type: messageTypes.MESSAGE,
                     content: message,
@@ -115,9 +97,7 @@ const SenderApp = () => {
             setMessage("");
             setIsTyping(false);
         } else {
-            console.warn(
-                "Not connected to a display session or message is empty"
-            );
+            console.warn("Not connected to a display session or message is empty.");
         }
     };
 
@@ -126,7 +106,7 @@ const SenderApp = () => {
         setMessage(newMessage);
 
         if (isLiveTyping && webrtcService && isConnected) {
-            webrtcService.sendMessage(
+            dualService.sendMessage(
                 JSON.stringify({
                     type: messageTypes.MESSAGE,
                     content: newMessage,
@@ -136,7 +116,7 @@ const SenderApp = () => {
             setIsTyping(false);
         } else if (!isLiveTyping && newMessage.length > 0 && !isTyping) {
             setIsTyping(true);
-            webrtcService.sendMessage(
+            dualService.sendMessage(
                 JSON.stringify({
                     type: messageTypes.TYPING,
                     content: "Typing...",
