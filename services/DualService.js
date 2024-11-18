@@ -2,8 +2,7 @@ import io from "socket.io-client";
 import BLEService from "./BLEService";
 import WebRTCService from "./WebRTCService";
 import { faker } from '@faker-js/faker';
-import mDNSService from "./mDNSService"; 
-import messageTypes from "../utils/messageTypes.json"; 
+import messageTypes from "../utils/messageTypes.json";
 
 // Store active sessions here
 const sessions = {};
@@ -25,21 +24,17 @@ const generateUniqueSessionId = () => {
     return sessionId;
 };
 
-
 class DualService {
-    constructor(onMessageReceived) {
+    constructor(onMessageReceived, sessionId) {
         this.onMessageReceived = onMessageReceived;
-        this.mdnsService = null;
         this.socket = null;
         this.webrtcService = null;
         this.bleService = new BLEService(onMessageReceived);
         this.isBLEActive = false;
         this.isSocketActive = false;
-        this.isMDNSActive = false;
         this.isConnected = false; // Prevent redundant connection attempts
-        this.sessionId = generateUniqueSessionId(); // Generate session ID once
+        this.sessionId = sessionId;
         this.isConnectedCallback = null;
-        this.onPeerDiscovered = null; // Callback for peer discovery
         this.connectionType = null; 
     }
 
@@ -47,66 +42,52 @@ class DualService {
         this.isConnectedCallback = callback;
     }
 
-    async initConnections(role) {
-        if (this.isConnected) return; // Prevent duplicate attempts
+    async initConnections() {
+        if (this.isConnected) return; // Prevent redundant connection
+        const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
 
-        try {
-            console.log("Trying mDNS...");
-            await this.initLocalDiscovery(role);
-            this.connectionType = "mDNS";
-        } catch (mdnsError) {
-            console.warn("mDNS failed:", mdnsError);
+        console.log(`Generated unique session ID: ${this.sessionId}`);
+        this.webrtcService = new WebRTCService(this.onMessageReceived);
 
+        this.webrtcService.onChannelOpen(() => {
+            console.log("Data channel opened.");
             if (!this.isConnected) {
-                try {
-                    console.log("Trying BLE...");
-                    await this.initBLEConnection();
-                    this.connectionType = "BLE";
-                } catch (bleError) {
-                    console.warn("BLE failed:", bleError);
-
-                    if (!this.isConnected) {
-                        console.log("Using WebRTC Signaling Server...");
-                        this.initSignalingConnection();
-                        this.connectionType = "WebRTC";
-                    }
+                this.isConnected = true;
+                if (this.isConnectedCallback) {
+                    this.isConnectedCallback("WebRTC");
                 }
             }
-        }
+        });
 
-        if (this.isConnectedCallback) {
-            this.isConnectedCallback(this.connectionType || "Unknown");
-        }
+        this.webrtcService.connect(websocketURL, this.sessionId);
+        this.isSocketActive = true
     }
 
-    // Initialize local discovery using mDNS
-    async initLocalDiscovery(role) {
-        if (typeof window !== "undefined") {
-            throw new Error("mDNSService can only be used on the server side.");
-        }
+    // Initialize WebRTC signaling connection
+    initSignalingConnection() {
+        if (this.isConnected) return; // Prevent redundant connection
 
-        return new Promise((resolve, reject) => {
-            this.mdnsService = new mDNSService(role, (name, peerRole) => {
-                if (!this.isConnected) {
-                    console.log(`Discovered peer: ${name} (${peerRole})`);
-                    this.isConnected = true;
-                    this.isMDNSActive = true;
-                    if (this.isConnectedCallback) this.isConnectedCallback("mDNS");
-                    resolve(); // Resolve once connected
+        const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
+
+        console.log(`Generated unique session ID: ${this.sessionId}`);
+        this.webrtcService = new WebRTCService(this.onMessageReceived);
+
+        this.webrtcService.onChannelOpen(() => {
+            console.log("WebRTC data channel opened.");
+            if (!this.isConnected) {
+                this.isConnected = true;
+                if (this.isConnectedCallback) {
+                    this.isConnectedCallback("WebRTC");
                 }
-            });
-
-            this.mdnsService.startAdvertising(this.sessionId);
-            this.mdnsService.discoverPeers();
-
-            // Timeout after 5 seconds if no peer is discovered
-            setTimeout(() => {
-                if (!this.isConnected) {
-                    this.mdnsService.stopAdvertising();
-                    reject(new Error("mDNS discovery timeout"));
-                }
-            }, 5000);
+                this.webrtcService.sendMessage(
+                    JSON.stringify({ type: messageTypes.CONNECTED })
+                );
+                console.log("Sent CONNECTED message via WebRTC.");
+            }
         });
+
+        this.webrtcService.connect(websocketURL, this.sessionId);
+        this.isSocketActive = true;
     }
 
     // Initialize BLE connection
@@ -130,53 +111,21 @@ class DualService {
         }
     }
 
-    // Initialize WebRTC signaling connection
-    initSignalingConnection() {
-        if (this.isConnected) return; // Prevent redundant connection
-
-        const websocketURL = process.env.NEXT_PUBLIC_WS_URL;
-
-        console.log(`Generated unique session ID: ${this.sessionId}`);
-        this.webrtcService = new WebRTCService(this.onMessageReceived);
-
-        this.webrtcService.onChannelOpen(() => {
-            console.log("Data channel opened.");
-            if (!this.isConnected) {
-                this.isConnected = true;
-                if (this.isConnectedCallback) {
-                    this.isConnectedCallback("webRTC");
-                }
-                this.webrtcService.sendMessage(
-                    JSON.stringify({ type: messageTypes.CONNECTED })
-                );
-            }
-        });
-
-        this.webrtcService.connect(websocketURL, this.sessionId);
-        this.isSocketActive = true;
-    }
-
-    stopLocalDiscovery() {
-        if (this.mdnsService) {
-            this.mdnsService.stopAdvertising();
-            this.mdnsService = null;
-        }
-    }
-
     sendMessage(message) {
         if (this.webrtcService?.channel?.readyState === "open") {
             this.webrtcService.sendMessage(message);
         } else if (this.isBLEActive) {
             this.bleService.sendMessage(message);
         } else {
-            console.warn("No connection available");
+            console.warn("No connection available. Message not sent.");
+            throw new Error("No connection available to send the message.");
         }
     }
+
 
     cleanup() {
         if (this.webrtcService) this.webrtcService.disconnect();
         if (this.isBLEActive) this.bleService.disconnect();
-        this.stopLocalDiscovery();
 
         console.log(`Session ID ${this.sessionId} cleaned up`);
     }

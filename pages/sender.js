@@ -41,7 +41,7 @@ const SenderApp = () => {
             const service = new DualService((receivedMessage) => {
                 try {
                     const messageData = JSON.parse(receivedMessage);
-                    console.log("Sender received message:", messageData); // Enhanced log
+                    console.log("Sender received message:", messageData);
 
                     if (messageData.type === messageTypes.CONNECTED) {
                         console.log("Display acknowledged connection on sender side.");
@@ -52,17 +52,20 @@ const SenderApp = () => {
                 } catch (error) {
                     console.error("Error parsing received message on sender:", error);
                 }
-            }, true);
+            });
 
             service.onConnected((type) => {
                 setIsConnected(true);
-                setConnectionType(type); 
+                setConnectionType(type);
                 console.log(`Connected using ${type}.`);
 
-                service.sendMessage(
-                    JSON.stringify({ type: messageTypes.CHANNEL_CONNECTED })
-                );
-                console.log("Sender sent CHANNEL_CONNECTED message to display.");
+                // Ensure data channel is ready before sending the message
+                if (type === "WebRTC" && service.webrtcService?.channel?.readyState === "open") {
+                    service.sendMessage(
+                        JSON.stringify({ type: messageTypes.CHANNEL_CONNECTED })
+                    );
+                    console.log("Sender sent CHANNEL_CONNECTED message to display.");
+                }
             });
 
             service.initConnections("sender");
@@ -75,6 +78,8 @@ const SenderApp = () => {
             };
         }
     }, [sessionId]);
+
+
 
     const togglePersistence = () => {
         setIsPersistent(!isPersistent);

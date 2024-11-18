@@ -62,7 +62,7 @@ const Home = () => {
                 } catch (error) {
                     console.error("Error parsing received message:", error);
                 }
-            });
+            },sessionId);
 
             // Handle connection state
             service.onConnected((type) => {
